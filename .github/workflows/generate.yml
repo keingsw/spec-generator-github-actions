@@ -1,0 +1,12 @@
+on: [push]
+name: Spec Generator
+jobs:
+  updateTOC:
+    name: Update TOC
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          npm ci
+          npm run build
+      - uses: ./

@@ -1,0 +1,4 @@
+name: 'Generate Specification Document in PDF'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
