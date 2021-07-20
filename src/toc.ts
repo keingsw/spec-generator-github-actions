@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import glob from 'glob';
-import {transform} from '@technote-space/doctoc';
+import {transform} from "@technote-space/doctoc";
 
 interface GenerateTocResult extends ReturnType<typeof transform> {
     path: string
@@ -21,6 +21,11 @@ const getChaptersInOrder = (pageContentFilePath: string) => {
     return pages.map(pageName => `${dirname}/${pageName}.md`);
 }
 
+const extractSectionTitleFromIndexContent = (indexFilePath: string) => {
+    const firstH1 = fs.readFileSync(indexFilePath).toString().split("\n").find(line => /^#\s.+$/.test(line));
+    return firstH1;
+}
+
 const generateChapterToc = (path: string): GenerateTocResult => {
     return {path, ...transform(fs.readFileSync(path, 'utf8'), {isNotitle: true})};
 }
@@ -36,15 +41,31 @@ const updateChapterToc = ({data, path}: GenerateTocResult) => {
     fs.writeFileSync(path, data, 'utf8');
 }
 
+const updateSectionToc = (generateTocResults: GenerateTocResult[]) => {
+    const dirname = path.dirname(generateTocResults[0].path);
+    const indexFilePath = `${dirname}/_index.md`;
+
+    const sectionToc = [
+      extractSectionTitleFromIndexContent(indexFilePath),
+      ...generateTocResults.map(({ toc }) => toc),
+    ].join(`\n`);
+    fs.writeFileSync(indexFilePath, sectionToc, "utf8");
+}
+
 export const updateToc = () => {
     const sectionContentsFiles = findSectionContentsFiles(SPEC_DIR);
     sectionContentsFiles.forEach(sectionContentsFile => {
         const results = generateTocPerSection(sectionContentsFile);
+        const shouldUpdateSectionToc = !!results.find(({transformed}) => transformed);
 
         results.forEach((result) => {
             if (result.transformed){
                 updateChapterToc(result);
             }
         })
+
+        if (shouldUpdateSectionToc) {
+            updateSectionToc(results);
+        }
     });
 }
