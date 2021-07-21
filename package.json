@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "devDependencies": {
+    "@types/markdown-pdf": "^9.0.1",
     "@types/node": "^16.3.3",
     "typescript": "^4.3.5"
   },
@@ -26,6 +27,7 @@
     "@actions/github": "^5.0.0",
     "@technote-space/doctoc": "^2.4.11",
     "@types/glob": "^7.1.4",
-    "glob": "^7.1.7"
+    "glob": "^7.1.7",
+    "markdown-pdf": "^10.0.0"
   }
 }

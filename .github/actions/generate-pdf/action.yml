@@ -1,0 +1,4 @@
+name: 'Update TOC'
+runs:
+  using: 'node12'
+  main: '../../../dist/generate-pdf/index.js'

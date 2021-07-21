@@ -11,3 +11,8 @@ jobs:
           npm run build
       - name: Update TOC
         uses: ./.github/actions/update-toc
+      # - name: Update Revision History
+      #   run: 
+      - name: Convert to PDF Document
+        uses: ./.github/actions/generate-pdf
+
