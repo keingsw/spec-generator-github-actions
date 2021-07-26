@@ -180,7 +180,6 @@ export async function commitChangesToBranch({
     });
 
     const newTree = await createTreeFromFiles(files);
-    console.log({ files, newTree });
     const newCommit = await commit({
         commitSha: branchRef.data.object.sha,
         newTree,
