@@ -1,8 +1,10 @@
+name: Spec Generator
+
 on:
-    workflow_dispatch:
+    # workflow_dispatch:
     pull_request:
         - types: [opened, synchronize, reopened]
-name: Spec Generator
+
 env:
     SPEC_DIR: ./sample-spec
     OUTPUT_DIR: ./sample-spec
