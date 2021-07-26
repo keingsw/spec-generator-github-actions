@@ -13,9 +13,15 @@ export const generatePdf = ({
     sectionContentsFilename,
     outputDir,
     outputFilename,
-}: GeneratePdfOptions) => {
-    const markdownFiles = findMarkdownFiles(specDir, sectionContentsFilename);
-    markdownPdf()
-        .concat.from.paths(markdownFiles, {})
-        .to(`${outputDir}/${outputFilename}`);
+}: GeneratePdfOptions): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        const markdownFiles = findMarkdownFiles(
+            specDir,
+            sectionContentsFilename
+        );
+
+        markdownPdf()
+            .concat.from.paths(markdownFiles, {})
+            .to(`${outputDir}/${outputFilename}`, () => resolve());
+    });
 };

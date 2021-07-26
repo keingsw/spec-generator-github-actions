@@ -33,7 +33,7 @@ async function run() {
     // TODO: Update revision history
 
     // Generate PDF
-    generatePdf({
+    await generatePdf({
         specDir: workingDir,
         sectionContentsFilename,
         outputDir,
