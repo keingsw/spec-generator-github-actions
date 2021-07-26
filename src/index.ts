@@ -11,7 +11,7 @@ import { generatePdf } from "./generate-pdf";
 import { findMarkdownFiles } from "./utils/fs";
 
 async function run() {
-    const workingDir = core.getInput("workingDir");
+    const specDir = core.getInput("specDir");
     const sectionContentsFilename = core.getInput("sectionContentsFilename");
     const outputDir = core.getInput("outputDir");
     const outputFilename = core.getInput("outputFilename");
@@ -29,12 +29,12 @@ async function run() {
     });
 
     updateToc({
-        specDir: workingDir,
+        specDir,
         sectionContentsFilename,
     });
     await commitChangesToBranch({
         branchName: newBranchName,
-        files: findMarkdownFiles(workingDir, sectionContentsFilename).map(
+        files: findMarkdownFiles(specDir, sectionContentsFilename).map(
             (filePath) => path.relative("./", filePath)
         ),
         author,
@@ -44,11 +44,12 @@ async function run() {
     // TODO: Update revision history
 
     await generatePdf({
-        specDir: workingDir,
+        specDir,
         sectionContentsFilename,
         outputDir,
         outputFilename,
     });
+
     await commitChangesToBranch({
         branchName: newBranchName,
         files: glob
