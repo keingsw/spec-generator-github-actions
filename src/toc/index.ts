@@ -1,19 +1,16 @@
 import fs from "fs";
 import path from "path";
-import glob from "glob";
 import { transform } from "@technote-space/doctoc";
+import { findSectionContentsFiles } from "../utils/fs";
 
 interface GenerateTocResult extends ReturnType<typeof transform> {
     path: string;
 }
 
-// TODO: take these as options from input
-const SPEC_DIR = "./sample-spec";
-const SECTION_CONTENTS_FILENAME = `_contents`;
-
-const findSectionContentsFiles = (specDir: string) => {
-    return glob.sync(`${specDir}/**/${SECTION_CONTENTS_FILENAME}.md`);
-};
+interface UpdateTocOptions {
+    specDir: string;
+    sectionContentsFilename: string;
+}
 
 const getChaptersInOrder = (pageContentFilePath: string) => {
     const dirname = path.dirname(pageContentFilePath);
@@ -59,8 +56,15 @@ const updateSectionToc = (generateTocResults: GenerateTocResult[]) => {
     fs.writeFileSync(indexFilePath, sectionToc, "utf8");
 };
 
-export const updateToc = () => {
-    const sectionContentsFiles = findSectionContentsFiles(SPEC_DIR);
+export const updateToc = ({
+    specDir,
+    sectionContentsFilename,
+}: UpdateTocOptions) => {
+    const sectionContentsFiles = findSectionContentsFiles(
+        specDir,
+        sectionContentsFilename
+    );
+
     sectionContentsFiles.forEach((sectionContentsFile) => {
         const results = generateTocPerSection(sectionContentsFile);
         const shouldUpdateSectionToc = !!results.find(

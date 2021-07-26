@@ -13,3 +13,7 @@ jobs:
               with:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
                   repository: ${{ github.repository }}
+                  workingDir: ${{ './sample-spec' }}
+                  outputDir: ${{ './sample-spec' }}
+                  outputFilename: ${{ 'spec.pdf' }}
+                  sectionContentsFilename: ${{ '_contents' }}
