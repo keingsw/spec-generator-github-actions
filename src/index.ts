@@ -59,11 +59,11 @@ async function run() {
         commitMessage: "Re-generate PDF",
     });
 
-    await createPullRequest({
-        baseBranchName,
-        newBranchName,
-        title: "Update spec PDF document",
-    });
+    // await createPullRequest({
+    //     baseBranchName,
+    //     newBranchName,
+    //     title: "Update spec PDF document",
+    // });
     // TODO: merge PR
     // TODO: delete branch
 

@@ -1,4 +1,7 @@
-on: [workflow_dispatch]
+on:
+    workflow_dispatch:
+    pull_request:
+        - types: [opened, synchronize, reopened]
 name: Spec Generator
 env:
     SPEC_DIR: ./sample-spec
@@ -6,17 +9,22 @@ env:
     OUTPUT_FILENAME: spec.pdf
     SECTION_CONTENTS_FILENAME: _contents
 jobs:
-    generate:
+    generatePDF:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
             - run: |
                   npm ci
                   npm run build
+            - run: |
+                  echo github.event.number = ${{ github.event.number  }}
+                  echo github.event.pull_request.number = ${{ github.event.pull_request.number }}
+                  echo github.event.issue.number = ${{ github.event.issue.number }}
             - uses: ./
               with:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
                   repository: ${{ github.repository }}
+                  prNumber: ${{ github.event.pull_request.number }}
                   specDir: ${{ env.SPEC_DIR }}
                   outputDir: ${{ env.OUTPUT_DIR }}
                   outputFilename: ${{ env.OUTPUT_FILENAME }}
