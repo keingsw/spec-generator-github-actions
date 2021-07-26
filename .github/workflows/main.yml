@@ -1,0 +1,15 @@
+on: [repository_dispatch]
+name: Spec Generator
+jobs:
+    generate:
+        name: Update TOC
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - run: |
+                  npm ci
+                  npm run build
+            - uses: ./
+              with:
+                  accessToken: ${{ secrets.GITHUB_TOKEN }}
+                  repository: ${{ github.repository }}
