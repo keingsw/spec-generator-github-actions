@@ -1,4 +1,4 @@
-import { readFile } from "fs-extra";
+import { readFileSync } from "fs-extra";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { Endpoints } from "@octokit/types";
@@ -12,9 +12,6 @@ interface CommitOptions {
     author: Author;
     commitMessage: string;
 }
-
-type CreatePullRequestResponse =
-    Endpoints["POST /repos/{owner}/{repo}/pulls"]["response"];
 
 type CreateTreeResponse =
     Endpoints["POST /repos/{owner}/{repo}/git/trees"]["parameters"];
@@ -31,7 +28,7 @@ function getOwnerAndRepo() {
     return { owner, repo };
 }
 
-const getFileAsUTF8 = (filePath: string) => readFile(filePath, "utf8");
+const getFileAsUTF8 = (filePath: string) => readFileSync(filePath, "utf8");
 
 const createTreeFromFiles = async (files: string[]) => {
     const octokit = getOctokit();
@@ -58,30 +55,6 @@ const createTreeFromFiles = async (files: string[]) => {
     })) as Tree;
 
     return tree;
-};
-
-const createBranch = async ({
-    baseBranch,
-    newBranch,
-}: {
-    baseBranch: string;
-    newBranch: string;
-}) => {
-    const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
-
-    const baseBranchRef = await octokit.rest.git.getRef({
-        owner,
-        repo,
-        ref: `heads/${baseBranch}`,
-    });
-
-    return await octokit.rest.git.createRef({
-        owner,
-        repo,
-        ref: `refs/heads/${newBranch}`,
-        sha: baseBranchRef.data.object.sha,
-    });
 };
 
 const commit = async ({
@@ -113,8 +86,6 @@ const commit = async ({
           ).data.sha
         : currentCommit.data.tree.sha;
 
-    console.log("newTreeSha", newTreeSha);
-
     return await octokit.rest.git.createCommit({
         owner,
         repo,
@@ -143,62 +114,82 @@ const setBranchToCommit = async ({
     });
 };
 
-export async function createPullRequest({
-    baseBranch,
-    newBranch,
-    author,
-    commitMessage,
-}: { baseBranch: string; newBranch: string } & CommitOptions) {
+export async function createBranch({
+    baseBranchName,
+    newBranchName,
+}: {
+    baseBranchName: string;
+    newBranchName: string;
+}) {
     const octokit = getOctokit();
     const { owner, repo } = getOwnerAndRepo();
 
-    const newBranchRef = await createBranch({
-        baseBranch,
-        newBranch,
+    const baseBranchRef = await octokit.rest.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${baseBranchName}`,
     });
 
-    const newCommit = await commit({
-        commitSha: newBranchRef.data.object.sha,
-        author,
-        commitMessage,
+    return await octokit.rest.git.createRef({
+        owner,
+        repo,
+        ref: `refs/heads/${newBranchName}`,
+        sha: baseBranchRef.data.object.sha,
     });
+}
 
-    await setBranchToCommit({
-        branchName: newBranch,
-        commitSha: newCommit.data.sha,
-    });
+export async function createPullRequest({
+    baseBranchName,
+    newBranchName,
+    title,
+}: {
+    baseBranchName: string;
+    newBranchName: string;
+    title: string;
+}) {
+    const octokit = getOctokit();
+    const { owner, repo } = getOwnerAndRepo();
 
     return await octokit.rest.pulls.create({
         owner,
         repo,
-        head: newBranch,
-        base: baseBranch,
-        author,
-        title: commitMessage,
+        base: baseBranchName,
+        head: newBranchName,
+        title,
     });
 }
 
-export async function commitChangesToPullRequest({
-    pr,
+export async function commitChangesToBranch({
+    branchName,
     files,
     author,
     commitMessage,
 }: {
-    pr: CreatePullRequestResponse;
+    branchName: string;
     files: string[];
     author: Author;
     commitMessage: string;
 }) {
+    const octokit = getOctokit();
+    const { owner, repo } = getOwnerAndRepo();
+
+    const branchRef = await octokit.rest.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${branchName}`,
+    });
+
     const newTree = await createTreeFromFiles(files);
+    console.log({ files, newTree });
     const newCommit = await commit({
-        commitSha: pr.data.head.sha,
+        commitSha: branchRef.data.object.sha,
         newTree,
         author,
         commitMessage,
     });
 
     await setBranchToCommit({
-        branchName: pr.data.head.ref,
+        branchName,
         commitSha: newCommit.data.sha,
     });
 }
