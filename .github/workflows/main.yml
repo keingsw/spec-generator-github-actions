@@ -1,7 +1,7 @@
 name: Spec Generator
 on:
     pull_request:
-        types: [opened, synchronize, reopened]
+        types: [opened, labeled, synchronize, reopened]
 env:
     SPEC_DIR: ./sample-spec
     OUTPUT_DIR: ./sample-spec
@@ -9,16 +9,13 @@ env:
     SECTION_CONTENTS_FILENAME: _contents
 jobs:
     generatePDF:
+        if: ${{ contains(github.event.pull_request.labels.*.names, 'update spec') }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
             - run: |
                   npm ci
                   npm run build
-            - run: |
-                  echo github.event.number = ${{ github.event.number  }}
-                  echo github.event.pull_request.number = ${{ github.event.pull_request.number }}
-                  echo github.event.issue.number = ${{ github.event.issue.number }}
             - uses: ./
               with:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
