@@ -114,29 +114,6 @@ const setBranchToCommit = async ({
     });
 };
 
-export async function createBranch({
-    baseBranchName,
-    newBranchName,
-}: {
-    baseBranchName: string;
-    newBranchName: string;
-}) {
-    const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
-
-    const baseBranchRef = await octokit.rest.git.getRef({
-        owner,
-        repo,
-        ref: `heads/${baseBranchName}`,
-    });
-
-    return await octokit.rest.git.createRef({
-        owner,
-        repo,
-        ref: `refs/heads/${newBranchName}`,
-        sha: baseBranchRef.data.object.sha,
-    });
-}
 
 export async function getPRBranchName() {
     const octokit = getOctokit();
@@ -150,28 +127,6 @@ export async function getPRBranchName() {
 
     return pr.data.head.ref;
 }
-
-export async function createPullRequest({
-    baseBranchName,
-    newBranchName,
-    title,
-}: {
-    baseBranchName: string;
-    newBranchName: string;
-    title: string;
-}) {
-    const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
-
-    return await octokit.rest.pulls.create({
-        owner,
-        repo,
-        base: baseBranchName,
-        head: newBranchName,
-        title,
-    });
-}
-
 export async function commitChangesToBranch({
     branchName,
     files,

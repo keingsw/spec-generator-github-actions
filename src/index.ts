@@ -3,9 +3,7 @@ import glob from "glob";
 import * as core from "@actions/core";
 import {
     getPRBranchName,
-    createBranch,
     commitChangesToBranch,
-    createPullRequest,
 } from "./utils/github";
 import { updateToc } from "./toc";
 import { generatePdf } from "./generate-pdf";
