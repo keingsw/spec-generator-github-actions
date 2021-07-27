@@ -2,6 +2,7 @@ import { readFileSync } from "fs-extra";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { Endpoints } from "@octokit/types";
+import path from "path";
 
 interface Author {
     name: string;
@@ -13,10 +14,15 @@ interface CommitOptions {
     commitMessage: string;
 }
 
-type CreateTreeResponse =
+type CreateTreeParameters =
     Endpoints["POST /repos/{owner}/{repo}/git/trees"]["parameters"];
 
-type Tree = Omit<CreateTreeResponse, "owner" | "repo">["tree"];
+type Tree = Omit<CreateTreeParameters, "owner" | "repo">["tree"];
+
+type GetPullRequestCommitsResponse =
+    Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}/commits"]["response"];
+
+export type Commit = GetPullRequestCommitsResponse["data"][number];
 
 function getOctokit() {
     const accessToken = core.getInput("accessToken");
@@ -29,6 +35,16 @@ function getOwnerAndRepo() {
 }
 
 const getFileAsUTF8 = (filePath: string) => readFileSync(filePath, "utf8");
+
+async function getPullRequest(prNumber: number) {
+    const octokit = getOctokit();
+    const { owner, repo } = getOwnerAndRepo();
+    return await octokit.rest.pulls.get({
+        owner,
+        repo,
+        pull_number: prNumber,
+    });
+}
 
 const createTreeFromFiles = async (files: string[]) => {
     const octokit = getOctokit();
@@ -114,49 +130,25 @@ const setBranchToCommit = async ({
     });
 };
 
-export async function createBranch({
-    baseBranchName,
-    newBranchName,
-}: {
-    baseBranchName: string;
-    newBranchName: string;
-}) {
-    const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
-
-    const baseBranchRef = await octokit.rest.git.getRef({
-        owner,
-        repo,
-        ref: `heads/${baseBranchName}`,
-    });
-
-    return await octokit.rest.git.createRef({
-        owner,
-        repo,
-        ref: `refs/heads/${newBranchName}`,
-        sha: baseBranchRef.data.object.sha,
-    });
+export async function getPullRequestBranchName(prNumber: number) {
+    const pr = await getPullRequest(prNumber);
+    return pr.data.head.ref;
 }
 
-export async function createPullRequest({
-    baseBranchName,
-    newBranchName,
-    title,
-}: {
-    baseBranchName: string;
-    newBranchName: string;
-    title: string;
-}) {
+export async function getRevisionHistoryCommitsOnPullRequest(prNumber: number) {
     const octokit = getOctokit();
     const { owner, repo } = getOwnerAndRepo();
 
-    return await octokit.rest.pulls.create({
+    const commits = await octokit.rest.pulls.listCommits({
         owner,
         repo,
-        base: baseBranchName,
-        head: newBranchName,
-        title,
+        pull_number: prNumber,
     });
+
+    return commits.data;
+    // return commits.data.filter((commit) =>
+    //     /^\[revision history\]/.test(commit.commit.message)
+    // );
 }
 
 export async function commitChangesToBranch({
