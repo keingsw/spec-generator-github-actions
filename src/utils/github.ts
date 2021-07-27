@@ -138,6 +138,19 @@ export async function createBranch({
     });
 }
 
+export async function getPRBranchName() {
+    const octokit = getOctokit();
+    const { owner, repo } = getOwnerAndRepo();
+    const prNumber = core.getInput("prNumber");
+    const pr = await octokit.rest.pulls.get({
+        owner,
+        repo,
+        pull_number: +prNumber,
+    });
+
+    return pr.data.head.ref;
+}
+
 export async function createPullRequest({
     baseBranchName,
     newBranchName,

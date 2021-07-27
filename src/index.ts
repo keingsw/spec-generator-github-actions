@@ -2,6 +2,7 @@ import path from "path";
 import glob from "glob";
 import * as core from "@actions/core";
 import {
+    getPRBranchName,
     createBranch,
     commitChangesToBranch,
     createPullRequest,
@@ -20,20 +21,14 @@ async function run() {
         name: "github-actions",
         email: "github-actions@github.com",
     };
-    const baseBranchName = "master";
-    const newBranchName = "generate-spec";
-
-    await createBranch({
-        baseBranchName,
-        newBranchName,
-    });
+    const branchName = await getPRBranchName();
 
     updateToc({
         specDir,
         sectionContentsFilename,
     });
     await commitChangesToBranch({
-        branchName: newBranchName,
+        branchName,
         files: findMarkdownFiles(specDir, sectionContentsFilename).map(
             (filePath) => path.relative("./", filePath)
         ),
@@ -51,7 +46,7 @@ async function run() {
     });
 
     await commitChangesToBranch({
-        branchName: newBranchName,
+        branchName,
         files: glob
             .sync(`${outputDir}/${outputFilename}`)
             .map((filePath) => path.relative("./", filePath)),
