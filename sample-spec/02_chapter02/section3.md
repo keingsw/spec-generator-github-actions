@@ -1,3 +1,13 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Section3](#section3)
+  - [Lorem ipsum dolor sit amet](#lorem-ipsum-dolor-sit-amet)
+  - [Suspendisse ultricies pellentesque purus](#suspendisse-ultricies-pellentesque-purus)
+  - [Nam ut viverra mauris](#nam-ut-viverra-mauris)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Section3
 
 ### Lorem ipsum dolor sit amet
