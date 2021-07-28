@@ -130,6 +130,18 @@ const setBranchToCommit = async ({
     });
 };
 
+export const getPullRequestByBranchName = async (branchName: string) => {
+    const octokit = getOctokit();
+    const { owner, repo } = getOwnerAndRepo();
+    const pr = await octokit.rest.pulls.list({
+        owner,
+        repo,
+        head: `${owner}/${branchName}`,
+    });
+
+    return pr.data;
+};
+
 export const getPullRequestBranchName = async (prNumber: number) => {
     const pr = await getPullRequest(prNumber);
     return pr.data.head.ref;
