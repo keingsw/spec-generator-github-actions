@@ -15,10 +15,7 @@ export const generatePdf = ({
     outputFilename,
 }: GeneratePdfOptions): Promise<void> => {
     return new Promise((resolve, reject) => {
-        const markdownFiles = findMarkdownFiles(
-            specDir,
-            chapterContentsFilename
-        );
+        const markdownFiles = findMarkdownFiles(specDir);
 
         markdownPdf()
             .concat.from.paths(markdownFiles, {})
