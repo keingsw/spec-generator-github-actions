@@ -2,16 +2,16 @@ import glob from "glob";
 
 export const findMarkdownFiles = (
     specDir: string,
-    sectionContentsFilename: string
+    chapterContentsFilename: string
 ) => {
     return glob
         .sync(`${specDir}/**/*.md`)
-        .filter((file) => !file.includes(`${sectionContentsFilename}.md`));
+        .filter((file) => !file.includes(`${chapterContentsFilename}.md`));
 };
 
-export const findSectionContentsFiles = (
+export const findChapterContentsFiles = (
     specDir: string,
-    sectionContentsFilename: string
+    chapterContentsFilename: string
 ) => {
-    return glob.sync(`${specDir}/**/${sectionContentsFilename}.md`);
+    return glob.sync(`${specDir}/**/${chapterContentsFilename}.md`);
 };

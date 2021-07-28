@@ -12,7 +12,7 @@ import { findMarkdownFiles } from "./utils/fs";
 
 async function run() {
     const specDir = core.getInput("specDir");
-    const sectionContentsFilename = core.getInput("sectionContentsFilename");
+    const chapterContentsFilename = core.getInput("chapterContentsFilename");
     const outputDir = core.getInput("outputDir");
     const outputFilename = core.getInput("outputFilename");
     const prNumber = +core.getInput("prNumber");
@@ -26,11 +26,11 @@ async function run() {
 
     updateToc({
         specDir,
-        sectionContentsFilename,
+        chapterContentsFilename,
     });
     await commitChangesToBranch({
         branchName,
-        files: findMarkdownFiles(specDir, sectionContentsFilename).map(
+        files: findMarkdownFiles(specDir, chapterContentsFilename).map(
             (filePath) => path.relative("./", filePath)
         ),
         author,
@@ -43,7 +43,7 @@ async function run() {
     });
     await commitChangesToBranch({
         branchName,
-        files: findMarkdownFiles(specDir, sectionContentsFilename).map(
+        files: findMarkdownFiles(specDir, chapterContentsFilename).map(
             (filePath) => path.relative("./", filePath)
         ),
         author,
@@ -52,7 +52,7 @@ async function run() {
 
     await generatePdf({
         specDir,
-        sectionContentsFilename,
+        chapterContentsFilename,
         outputDir,
         outputFilename,
     });

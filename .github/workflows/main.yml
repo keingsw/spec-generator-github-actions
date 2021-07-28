@@ -27,7 +27,7 @@ jobs:
                   specDir: ${{ env.SPEC_DIR }}
                   outputDir: ${{ env.OUTPUT_DIR }}
                   outputFilename: ${{ env.OUTPUT_FILENAME }}
-                  sectionContentsFilename: ${{ env.SECTION_CONTENTS_FILENAME }}
+                  chapterContentsFilename: ${{ env.SECTION_CONTENTS_FILENAME }}
             - uses: actions/upload-artifact@v2
               with:
                   name: spec-pdf

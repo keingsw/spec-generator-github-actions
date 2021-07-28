@@ -3,21 +3,21 @@ import { findMarkdownFiles } from "../utils/fs";
 
 interface GeneratePdfOptions {
     specDir: string;
-    sectionContentsFilename: string;
+    chapterContentsFilename: string;
     outputDir: string;
     outputFilename: string;
 }
 
 export const generatePdf = ({
     specDir,
-    sectionContentsFilename,
+    chapterContentsFilename,
     outputDir,
     outputFilename,
 }: GeneratePdfOptions): Promise<void> => {
     return new Promise((resolve, reject) => {
         const markdownFiles = findMarkdownFiles(
             specDir,
-            sectionContentsFilename
+            chapterContentsFilename
         );
 
         markdownPdf()
