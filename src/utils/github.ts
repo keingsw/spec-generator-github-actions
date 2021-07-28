@@ -139,7 +139,7 @@ export const getPullRequestByBranchName = async (branchName: string) => {
         head: `${owner}/${branchName}`,
     });
 
-    return pr.data;
+    return pr.data[0];
 };
 
 export const getPullRequestBranchName = async (prNumber: number) => {
