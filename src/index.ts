@@ -39,7 +39,7 @@ async function run() {
         commitMessage: "Update TOC",
     });
 
-    updateRevisionHistory({
+    await updateRevisionHistory({
         prNumber,
         specDir,
         chapterIndexFilename,
