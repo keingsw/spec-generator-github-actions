@@ -53,9 +53,9 @@ function extractChangedSectionsFromCommit(specDir: string, commit: Commit) {
     const { files = [] } = commit;
     console.log(commit);
     console.log(files);
-    console.log(files.map(({ filename }) => filename || ""));
+    console.log(files.map(({ filename }) => filename ?? ""));
     const changedSections = groupFilenamesBySection({
-        filenames: files.map(({ filename }) => filename || ""),
+        filenames: files.map(({ filename }) => filename ?? ""),
         specDir,
     });
 
