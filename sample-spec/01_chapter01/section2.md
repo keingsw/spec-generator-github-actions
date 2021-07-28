@@ -1,5 +1,8 @@
 ## Section2
 
+<!-- START toc -->
+<!-- END toc -->
+
 ### Lorem ipsum dolor sit amet
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum dapibus in neque sed molestie. Nullam ut diam sit amet velit pulvinar rutrum. Aenean rutrum nunc maximus ipsum egestas rutrum. Vivamus egestas convallis augue. Nam iaculis luctus congue. Pellentesque a eros quis lorem fringilla condimentum nec auctor magna. Integer eu sollicitudin nisl. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
