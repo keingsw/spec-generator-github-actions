@@ -19,10 +19,10 @@ type CreateTreeParameters =
 
 type Tree = Omit<CreateTreeParameters, "owner" | "repo">["tree"];
 
-type GetPullRequestCommitsResponse =
-    Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}/commits"]["response"];
+type GetCommitsResponse =
+    Endpoints["GET /repos/{owner}/{repo}/commits/{ref}"]["response"];
 
-export type Commit = GetPullRequestCommitsResponse["data"][number];
+export type Commit = GetCommitsResponse["data"];
 
 function getOctokit() {
     const accessToken = core.getInput("accessToken");
@@ -139,16 +139,30 @@ export async function getRevisionHistoryCommitsOnPullRequest(prNumber: number) {
     const octokit = getOctokit();
     const { owner, repo } = getOwnerAndRepo();
 
-    const commits = await octokit.rest.pulls.listCommits({
+    const commitsOnPR = await octokit.rest.pulls.listCommits({
         owner,
         repo,
         pull_number: prNumber,
     });
 
-    return commits.data;
-    // return commits.data.filter((commit) =>
-    //     /^\[revision history\]/.test(commit.commit.message)
-    // );
+    return await commitsOnPR.data.reduce(
+        async (previousPromise: Promise<Commit[]>, { sha }) => {
+            const commits = await previousPromise;
+
+            const { data: commit } = await octokit.rest.repos.getCommit({
+                owner,
+                repo,
+                ref: sha,
+            });
+
+            if (/^\[revision history\]/.test(commit.commit.message)) {
+                commits.push(commit);
+            }
+
+            return commits;
+        },
+        Promise.resolve([])
+    );
 }
 
 export async function commitChangesToBranch({

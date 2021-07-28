@@ -29,37 +29,19 @@ function matchesEnd(line: string) {
     return pattern.test(line);
 }
 
-function groupFilenamesBySection({
-    filenames,
-    specDir,
-}: {
-    filenames: string[];
-    specDir: string;
-}) {
-    return filenames
-        .reduce(function (accumulator: string[], filename) {
-            const section = path
-                .dirname(path.relative(specDir, filename))
-                .split("/")[0];
-            if (accumulator.indexOf(section) < -1) {
-                accumulator.push(section);
-            }
-            return accumulator;
-        }, [])
-        .filter((section) => !!section);
-}
-
-function extractChangedSectionsFromCommit(specDir: string, commit: Commit) {
+function extractChangedChaptersFromCommit(specDir: string, commit: Commit) {
+    const pattern = new RegExp(`^${path.relative(".", specDir)}\/(.*)/.*\.md$`);
     const { files = [] } = commit;
-    console.log(commit);
-    console.log(files);
-    console.log(files.map(({ filename }) => filename ?? ""));
-    const changedSections = groupFilenamesBySection({
-        filenames: files.map(({ filename }) => filename ?? ""),
-        specDir,
-    });
 
-    return changedSections;
+    return files.reduce((chapters: string[], { filename = "" }) => {
+        const matches = filename.match(pattern);
+        if (matches) {
+            if (chapters.indexOf(matches[1]) === -1) {
+                chapters.push(matches[1]);
+            }
+        }
+        return chapters;
+    }, []);
 }
 
 function findRevisionHistory(indexContentLines: string[]) {
@@ -94,14 +76,14 @@ function updateIndexFileAndSave({
     const updatedContent = [
         ...indexContentLines.slice(0, startAt),
         "",
-        `<!-- ${START_COMMENT} ->`,
+        `<!-- ${START_COMMENT} -->`,
         ...revisionHistory,
-        `<!-- ${END_COMMENT} ->`,
+        `<!-- ${END_COMMENT} -->`,
         "",
-        ...indexContentLines.slice(endAt),
+        ...indexContentLines.slice(endAt + 1),
     ].join("\n");
-
     fs.writeFileSync(indexFilePath, updatedContent, "utf8");
+    console.log(fs.readFileSync(indexFilePath).toString());
 }
 
 const composeTableRowLine = (row: string[]) => `|${row.join("|")}|`;
@@ -114,9 +96,9 @@ const generateHeaderLines = () => {
 
 const extractRowDataFromCommit = (commit: Commit["commit"]) => {
     return [
-        "0.x", // TODO: auto-numbering
-        commit.author?.date ?? "",
-        commit.author?.name ?? "",
+        "0.x", // TODO: auto-numbering → Think how?
+        commit.author ? commit.author.date || "" : "",
+        commit.author ? commit.author.name || "" : "",
         commit.message,
     ];
 };
@@ -126,28 +108,31 @@ export const updateRevisionHistory = async ({
     specDir,
 }: UpdateRevisionHistoryOptions): Promise<void> => {
     const commits = await getRevisionHistoryCommitsOnPullRequest(prNumber);
+    const commitsGroupedByChapter = commits.reduce(
+        (commitsGroupedByChapter: { [key: string]: Commit[] }, commit) => {
+            const changedChapters = extractChangedChaptersFromCommit(
+                specDir,
+                commit
+            );
 
-    const commitsGroupedBySection: { [key: string]: Commit[] } = {};
-    commits.forEach((commit) => {
-        const changedSections = extractChangedSectionsFromCommit(
-            specDir,
-            commit
-        );
+            if (changedChapters) {
+                changedChapters.forEach((chapter) =>
+                    (commitsGroupedByChapter[chapter] =
+                        commitsGroupedByChapter[chapter] || []).push(commit)
+                );
+            }
 
-        changedSections.forEach((section) =>
-            (commitsGroupedBySection[section] =
-                commitsGroupedBySection[section] || []).push(commit)
-        );
-    });
-    console.log("commits", commits);
-    console.log("commitsGroupedBySection", commitsGroupedBySection);
+            return commitsGroupedByChapter;
+        },
+        {}
+    );
 
-    Object.keys(commitsGroupedBySection).forEach((section) => {
-        const newRevisionHistoryLines = commitsGroupedBySection[section]
+    Object.keys(commitsGroupedByChapter).forEach((chapter) => {
+        const newRevisionHistoryLines = commitsGroupedByChapter[chapter]
             .map(({ commit }) => extractRowDataFromCommit(commit))
             .map(composeTableRowLine);
 
-        const indexFilePath = `${specDir}/${section}/_index.md`;
+        const indexFilePath = `${specDir}/${chapter}/_index.md`;
         const indexContentLines = getIndexContentLines(indexFilePath);
         const { startAt, endAt, lines } =
             findRevisionHistory(indexContentLines);
