@@ -16,12 +16,12 @@ const START_COMMENT = "START revision history";
 const END_COMMENT = "END revision history";
 
 const matchesStart = (line: string) => {
-    const pattern = new RegExp(`<!-- ${START_COMMENT}`);
+    const pattern = new RegExp(`[${START_COMMENT}]: <>`);
     return pattern.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const pattern = new RegExp(`<!-- ${END_COMMENT}`);
+    const pattern = new RegExp(`[${END_COMMENT}]: <>`);
     return pattern.test(line);
 };
 
@@ -86,11 +86,13 @@ const composeRevisionHistory = ({
 }) => {
     return [
         "",
-        `<!-- ${START_COMMENT} -->`,
+        `[${START_COMMENT}]: <>`,
+        "",
         ...composeHeaderLines(),
         ...prevRevisionHistory,
         ...newRevisionHistory,
-        `<!-- ${END_COMMENT} -->`,
+        "",
+        `[${END_COMMENT}]: <>`,
         "",
     ].join("\n");
 };
@@ -120,8 +122,8 @@ export const updateRevisionHistory = async ({
             startAt,
             endAt,
             newContent: composeRevisionHistory({
-                // NOTE: Slice first 2 rows to remove header and division
-                prevRevisionHistory: matched.slice(2),
+                // NOTE: trim header, division and line breaks
+                prevRevisionHistory: matched.slice(3, -1),
                 newRevisionHistory,
             }),
         });

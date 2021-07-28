@@ -18,12 +18,12 @@ const START_COMMENT = "START toc";
 const END_COMMENT = "END toc";
 
 const matchesStart = (line: string) => {
-    const pattern = new RegExp(`<!-- ${START_COMMENT}`);
+    const pattern = new RegExp(`[${START_COMMENT}]: <>`);
     return pattern.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const pattern = new RegExp(`<!-- ${END_COMMENT}`);
+    const pattern = new RegExp(`[${END_COMMENT}]: <>`);
     return pattern.test(line);
 };
 
@@ -58,13 +58,9 @@ const generateTocPerChapter = (chapterContentFile: string) => {
 };
 
 const wrapTocWithAnchorComment = (toc: string) => {
-    return [
-        "",
-        `<!-- ${START_COMMENT} -->`,
-        toc,
-        `<!-- ${END_COMMENT} -->`,
-        "",
-    ].join("\n");
+    return ["", `[${START_COMMENT}]: <>`, toc, `[${END_COMMENT}]: <>`, ""].join(
+        "\n"
+    );
 };
 
 const updateSectionToc = ({ toc, path }: GenerateTocResult) => {
