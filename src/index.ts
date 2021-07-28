@@ -18,7 +18,7 @@ async function run() {
     const outputFilename = core.getInput("outputFilename");
 
     const [branchName] = core.getInput("branchRef").split("/").slice(-1);
-    const [{ number: prNumber }] = await getPullRequestByBranchName(branchName);
+    const { number: prNumber } = await getPullRequestByBranchName(branchName);
 
     const author = {
         name: "github-actions",
