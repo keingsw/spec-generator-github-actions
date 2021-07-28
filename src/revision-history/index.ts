@@ -5,6 +5,7 @@ import {
     getRevisionHistoryCommitsOnPullRequest,
     Commit,
 } from "../utils/github";
+import { matchSection, updateSection } from "../utils/update-section";
 
 interface UpdateRevisionHistoryOptions {
     prNumber: number;
@@ -14,10 +15,6 @@ interface UpdateRevisionHistoryOptions {
 const HEADER = ["改訂番号", "改訂日", "改訂者", "改訂内容"];
 const START_COMMENT = "START revision history";
 const END_COMMENT = "END revision history";
-
-function getIndexContentLines(indexFilePath: string) {
-    return fs.readFileSync(indexFilePath).toString().split("\n");
-}
 
 function matchesStart(line: string) {
     const pattern = new RegExp(`<!-- ${START_COMMENT}`);
@@ -44,48 +41,6 @@ function extractChangedChaptersFromCommit(specDir: string, commit: Commit) {
     }, []);
 }
 
-function findRevisionHistory(indexContentLines: string[]) {
-    const startAt = indexContentLines.findIndex(matchesStart);
-    const endAt = indexContentLines.findIndex(matchesEnd);
-    const lines =
-        startAt < 0 || endAt < 0
-            ? []
-            : // NOTE: slice revision history lines without start/end comments and table header
-              indexContentLines.slice(startAt + 3, endAt - 1);
-
-    return {
-        startAt,
-        endAt,
-        lines,
-    };
-}
-
-function updateIndexFileAndSave({
-    indexFilePath,
-    indexContentLines,
-    startAt,
-    endAt,
-    revisionHistory,
-}: {
-    indexFilePath: string;
-    indexContentLines: string[];
-    startAt: number;
-    endAt: number;
-    revisionHistory: string[];
-}) {
-    const updatedContent = [
-        ...indexContentLines.slice(0, startAt),
-        "",
-        `<!-- ${START_COMMENT} -->`,
-        ...revisionHistory,
-        `<!-- ${END_COMMENT} -->`,
-        "",
-        ...indexContentLines.slice(endAt + 1),
-    ].join("\n");
-    fs.writeFileSync(indexFilePath, updatedContent, "utf8");
-    console.log(fs.readFileSync(indexFilePath).toString());
-}
-
 const composeTableRowLine = (row: string[]) => `|${row.join("|")}|`;
 
 const generateHeaderLines = () => {
@@ -102,6 +57,24 @@ const extractRowDataFromCommit = (commit: Commit["commit"]) => {
         commit.message,
     ];
 };
+
+function composeRevisionHistory({
+    prevRevisionHistory,
+    newRevisionHistory,
+}: {
+    prevRevisionHistory: string[];
+    newRevisionHistory: string[];
+}) {
+    return [
+        "",
+        `<!-- ${START_COMMENT} -->`,
+        ...generateHeaderLines(),
+        ...prevRevisionHistory,
+        ...newRevisionHistory,
+        `<!-- ${END_COMMENT} -->`,
+        "",
+    ].join("\n");
+}
 
 export const updateRevisionHistory = async ({
     prNumber,
@@ -128,25 +101,26 @@ export const updateRevisionHistory = async ({
     );
 
     Object.keys(commitsGroupedByChapter).forEach((chapter) => {
-        const newRevisionHistoryLines = commitsGroupedByChapter[chapter]
+        const newRevisionHistory = commitsGroupedByChapter[chapter]
             .map(({ commit }) => extractRowDataFromCommit(commit))
             .map(composeTableRowLine);
 
         const indexFilePath = `${specDir}/${chapter}/_index.md`;
-        const indexContentLines = getIndexContentLines(indexFilePath);
-        const { startAt, endAt, lines } =
-            findRevisionHistory(indexContentLines);
+        const { startAt, endAt, matched } = matchSection({
+            filePath: indexFilePath,
+            matchesStart,
+            matchesEnd,
+        });
 
-        updateIndexFileAndSave({
-            indexFilePath,
-            indexContentLines,
+        updateSection({
+            filePath: indexFilePath,
             startAt,
             endAt,
-            revisionHistory: [
-                ...generateHeaderLines(),
-                ...lines,
-                ...newRevisionHistoryLines,
-            ],
+            newContent: composeRevisionHistory({
+                // NOTE: Slice first 2 rows to remove header and division
+                prevRevisionHistory: matched.slice(2),
+                newRevisionHistory,
+            }),
         });
     });
 };
