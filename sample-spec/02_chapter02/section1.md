@@ -1,8 +1,6 @@
 ## Section1
 
 
-
-
 <!-- START toc -->
 
 - [Section1](#section1)
@@ -11,8 +9,6 @@
   - [Nam ut viverra mauris](#nam-ut-viverra-mauris)
 
 <!-- END toc -->
-
-
 
 
 ### Lorem ipsum dolor sit amet
