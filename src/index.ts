@@ -16,6 +16,7 @@ async function run() {
     const chapterIndexFilename = core.getInput("chapterIndexFilename");
     const outputDir = core.getInput("outputDir");
     const outputFilename = core.getInput("outputFilename");
+    const branchRef = core.getInput("branchRef");
 
     console.log({
         specDir,
@@ -23,6 +24,7 @@ async function run() {
         chapterIndexFilename,
         outputDir,
         outputFilename,
+        branchRef,
     });
     // const prNumber = +core.getInput("prNumber");
     const prNumber = 22;
