@@ -9,7 +9,6 @@ env:
     SECTION_CONTENTS_FILENAME: _contents
 jobs:
     generatePDF:
-        if: ${{ contains(github.event.pull_request.labels.*.names, 'update spec') }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
