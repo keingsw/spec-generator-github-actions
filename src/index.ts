@@ -30,42 +30,28 @@ async function run() {
         chapterIndexFilename,
         chapterContentsFilename,
     });
-    await commitChangesToBranch({
-        branchName,
-        files: findMarkdownFiles(specDir).map((filePath) =>
-            path.relative("./", filePath)
-        ),
-        author,
-        commitMessage: "Update TOC",
-    });
-
     await updateRevisionHistory({
         prNumber,
         specDir,
         chapterIndexFilename,
     });
-    await commitChangesToBranch({
-        branchName,
-        files: findMarkdownFiles(specDir).map((filePath) =>
-            path.relative("./", filePath)
-        ),
-        author,
-        commitMessage: "Update Revision History",
-    });
-
     await generatePdf({
         specDir,
         chapterContentsFilename,
         outputDir,
         outputFilename,
     });
+
     await commitChangesToBranch({
         branchName,
-        files: glob
-            .sync(`${outputDir}/${outputFilename}`)
-            .map((filePath) => path.relative("./", filePath)),
+        files: [
+            ...findMarkdownFiles(specDir).map((filePath) =>
+                path.relative("./", filePath)
+            ),
+            path.relative("./", `${outputDir}/${outputFilename}`),
+        ],
         author,
-        commitMessage: "Re-generate PDF",
+        commitMessage: "Update TOC and revision history, and re-generate PDF",
     });
 }
 
