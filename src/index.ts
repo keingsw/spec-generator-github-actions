@@ -16,6 +16,7 @@ async function run() {
     const chapterIndexFilename = core.getInput("chapterIndexFilename");
     const outputDir = core.getInput("outputDir");
     const outputFilename = core.getInput("outputFilename");
+
     const branchRef = core.getInput("branchRef");
 
     console.log({
@@ -26,9 +27,11 @@ async function run() {
         outputFilename,
         branchRef,
     });
+    // TODO: get PR from branchName
     // const prNumber = +core.getInput("prNumber");
     const prNumber = 22;
 
+    // TODO: set in workflow
     const author = {
         name: "github-actions",
         email: "github-actions@github.com",
@@ -38,12 +41,14 @@ async function run() {
 
     updateToc({
         specDir,
+        chapterIndexFilename,
         chapterContentsFilename,
     });
+
     await commitChangesToBranch({
         branchName,
-        files: findMarkdownFiles(specDir, chapterContentsFilename).map(
-            (filePath) => path.relative("./", filePath)
+        files: findMarkdownFiles(specDir).map((filePath) =>
+            path.relative("./", filePath)
         ),
         author,
         commitMessage: "Update TOC",
@@ -52,11 +57,12 @@ async function run() {
     updateRevisionHistory({
         prNumber,
         specDir,
+        chapterIndexFilename,
     });
     await commitChangesToBranch({
         branchName,
-        files: findMarkdownFiles(specDir, chapterContentsFilename).map(
-            (filePath) => path.relative("./", filePath)
+        files: findMarkdownFiles(specDir).map((filePath) =>
+            path.relative("./", filePath)
         ),
         author,
         commitMessage: "Update Revision History",

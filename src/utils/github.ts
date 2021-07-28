@@ -24,19 +24,19 @@ type GetCommitsResponse =
 
 export type Commit = GetCommitsResponse["data"];
 
-function getOctokit() {
+const getOctokit = () => {
     const accessToken = core.getInput("accessToken");
     return github.getOctokit(accessToken);
-}
+};
 
-function getOwnerAndRepo() {
+const getOwnerAndRepo = () => {
     const [owner, repo] = core.getInput("repository").split("/");
     return { owner, repo };
-}
+};
 
 const getFileAsUTF8 = (filePath: string) => readFileSync(filePath, "utf8");
 
-async function getPullRequest(prNumber: number) {
+const getPullRequest = async (prNumber: number) => {
     const octokit = getOctokit();
     const { owner, repo } = getOwnerAndRepo();
     return await octokit.rest.pulls.get({
@@ -44,7 +44,7 @@ async function getPullRequest(prNumber: number) {
         repo,
         pull_number: prNumber,
     });
-}
+};
 
 const createTreeFromFiles = async (files: string[]) => {
     const octokit = getOctokit();
@@ -130,12 +130,14 @@ const setBranchToCommit = async ({
     });
 };
 
-export async function getPullRequestBranchName(prNumber: number) {
+export const getPullRequestBranchName = async (prNumber: number) => {
     const pr = await getPullRequest(prNumber);
     return pr.data.head.ref;
-}
+};
 
-export async function getRevisionHistoryCommitsOnPullRequest(prNumber: number) {
+export const getRevisionHistoryCommitsOnPullRequest = async (
+    prNumber: number
+) => {
     const octokit = getOctokit();
     const { owner, repo } = getOwnerAndRepo();
 
@@ -163,9 +165,9 @@ export async function getRevisionHistoryCommitsOnPullRequest(prNumber: number) {
         },
         Promise.resolve([])
     );
-}
+};
 
-export async function commitChangesToBranch({
+export const commitChangesToBranch = async ({
     branchName,
     files,
     author,
@@ -175,7 +177,7 @@ export async function commitChangesToBranch({
     files: string[];
     author: Author;
     commitMessage: string;
-}) {
+}) => {
     const octokit = getOctokit();
     const { owner, repo } = getOwnerAndRepo();
 
@@ -197,4 +199,4 @@ export async function commitChangesToBranch({
         branchName,
         commitSha: newCommit.data.sha,
     });
-}
+};

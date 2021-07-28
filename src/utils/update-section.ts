@@ -1,10 +1,10 @@
 import fs from "fs";
 
-function getFileContentLines(filePath: string) {
+const getFileContentLines = (filePath: string) => {
     return fs.readFileSync(filePath, "utf8").toString().split("\n");
-}
+};
 
-export function matchSection({
+export const matchSection = ({
     filePath,
     matchesStart,
     matchesEnd,
@@ -12,7 +12,7 @@ export function matchSection({
     filePath: string;
     matchesStart: (line: string) => boolean;
     matchesEnd: (line: string) => boolean;
-}) {
+}) => {
     const contentLines = getFileContentLines(filePath);
     const startAt = contentLines.findIndex(matchesStart);
     const endAt = contentLines.findIndex(matchesEnd);
@@ -25,9 +25,9 @@ export function matchSection({
         matched,
         contentLines,
     };
-}
+};
 
-export function updateSection({
+export const updateSection = ({
     filePath,
     startAt,
     endAt,
@@ -37,7 +37,7 @@ export function updateSection({
     startAt: number;
     endAt: number;
     newContent: string;
-}) {
+}) => {
     const contentLines = getFileContentLines(filePath);
     const updatedContent = [
         ...contentLines.slice(0, startAt),
@@ -46,4 +46,4 @@ export function updateSection({
     ].join("\n");
 
     fs.writeFileSync(filePath, updatedContent, "utf8");
-}
+};

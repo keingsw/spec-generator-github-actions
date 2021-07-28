@@ -22,11 +22,8 @@ on:
                 description: "chapter index filename"
                 default: "_index.md"
                 required: true
-    # pull_request:
-    #     types: [opened, labeled, synchronize, reopened]
 jobs:
     generatePDF:
-        #if: ${{ contains(github.event.pull_request.labels.*.names, 'update spec') }}
         runs-on: ubuntu-latest
         steps:
             - run: echo '${{ toJson(github) }}'

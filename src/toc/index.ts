@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
+import glob from "glob";
 import { transform } from "@technote-space/doctoc";
-import { findChapterContentsFiles } from "../utils/fs";
 import { matchSection, updateSection } from "../utils/update-section";
 
 interface GenerateTocResult extends ReturnType<typeof transform> {
@@ -10,21 +10,29 @@ interface GenerateTocResult extends ReturnType<typeof transform> {
 
 interface UpdateTocOptions {
     specDir: string;
+    chapterIndexFilename: string;
     chapterContentsFilename: string;
 }
 
 const START_COMMENT = "START toc";
 const END_COMMENT = "END toc";
 
-function matchesStart(line: string) {
+const matchesStart = (line: string) => {
     const pattern = new RegExp(`<!-- ${START_COMMENT}`);
     return pattern.test(line);
-}
+};
 
-function matchesEnd(line: string) {
+const matchesEnd = (line: string) => {
     const pattern = new RegExp(`<!-- ${END_COMMENT}`);
     return pattern.test(line);
-}
+};
+
+const findChapterContentsFiles = (
+    specDir: string,
+    chapterContentsFilename: string
+) => {
+    return glob.sync(`${specDir}/**/${chapterContentsFilename}`);
+};
 
 const getSectionsInOrder = (chapterContentFilePath: string) => {
     const dirname = path.dirname(chapterContentFilePath);
@@ -74,14 +82,19 @@ const updateSectionToc = ({ toc, path }: GenerateTocResult) => {
     });
 };
 
-const updateChapterToc = (generateTocResults: GenerateTocResult[]) => {
+const updateChapterToc = (
+    chapterIndexFilename: string,
+    generateTocResults: GenerateTocResult[]
+) => {
     const dirname = path.dirname(generateTocResults[0].path);
-    const indexFilePath = `${dirname}/_index.md`;
+    const indexFilePath = `${dirname}/${chapterIndexFilename}`;
+
     const { startAt, endAt } = matchSection({
         filePath: indexFilePath,
         matchesStart,
         matchesEnd,
     });
+
     updateSection({
         filePath: indexFilePath,
         startAt,
@@ -94,6 +107,7 @@ const updateChapterToc = (generateTocResults: GenerateTocResult[]) => {
 
 export const updateToc = ({
     specDir,
+    chapterIndexFilename,
     chapterContentsFilename,
 }: UpdateTocOptions) => {
     const chapterContentsFiles = findChapterContentsFiles(
@@ -114,7 +128,7 @@ export const updateToc = ({
         });
 
         if (shouldUpdateChapterToc) {
-            updateChapterToc(results);
+            updateChapterToc(chapterIndexFilename, results);
         }
     });
 };

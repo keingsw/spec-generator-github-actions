@@ -1,6 +1,4 @@
-import fs from "fs";
 import path from "path";
-import { Endpoints } from "@octokit/types";
 import {
     getRevisionHistoryCommitsOnPullRequest,
     Commit,
@@ -10,23 +8,24 @@ import { matchSection, updateSection } from "../utils/update-section";
 interface UpdateRevisionHistoryOptions {
     prNumber: number;
     specDir: string;
+    chapterIndexFilename: string;
 }
 
 const HEADER = ["改訂番号", "改訂日", "改訂者", "改訂内容"];
 const START_COMMENT = "START revision history";
 const END_COMMENT = "END revision history";
 
-function matchesStart(line: string) {
+const matchesStart = (line: string) => {
     const pattern = new RegExp(`<!-- ${START_COMMENT}`);
     return pattern.test(line);
-}
+};
 
-function matchesEnd(line: string) {
+const matchesEnd = (line: string) => {
     const pattern = new RegExp(`<!-- ${END_COMMENT}`);
     return pattern.test(line);
-}
+};
 
-function extractChangedChaptersFromCommit(specDir: string, commit: Commit) {
+const extractChangedChaptersFromCommit = (specDir: string, commit: Commit) => {
     const pattern = new RegExp(`^${path.relative(".", specDir)}\/(.*)/.*\.md$`);
     const { files = [] } = commit;
 
@@ -39,14 +38,6 @@ function extractChangedChaptersFromCommit(specDir: string, commit: Commit) {
         }
         return chapters;
     }, []);
-}
-
-const composeTableRowLine = (row: string[]) => `|${row.join("|")}|`;
-
-const generateHeaderLines = () => {
-    return [HEADER, Array<string>(HEADER.length).fill("----")].map(
-        composeTableRowLine
-    );
 };
 
 const extractRowDataFromCommit = (commit: Commit["commit"]) => {
@@ -58,30 +49,8 @@ const extractRowDataFromCommit = (commit: Commit["commit"]) => {
     ];
 };
 
-function composeRevisionHistory({
-    prevRevisionHistory,
-    newRevisionHistory,
-}: {
-    prevRevisionHistory: string[];
-    newRevisionHistory: string[];
-}) {
-    return [
-        "",
-        `<!-- ${START_COMMENT} -->`,
-        ...generateHeaderLines(),
-        ...prevRevisionHistory,
-        ...newRevisionHistory,
-        `<!-- ${END_COMMENT} -->`,
-        "",
-    ].join("\n");
-}
-
-export const updateRevisionHistory = async ({
-    prNumber,
-    specDir,
-}: UpdateRevisionHistoryOptions): Promise<void> => {
-    const commits = await getRevisionHistoryCommitsOnPullRequest(prNumber);
-    const commitsGroupedByChapter = commits.reduce(
+const groupCommitsByChapter = (specDir: string, commits: Commit[]) =>
+    commits.reduce(
         (commitsGroupedByChapter: { [key: string]: Commit[] }, commit) => {
             const changedChapters = extractChangedChaptersFromCommit(
                 specDir,
@@ -100,12 +69,46 @@ export const updateRevisionHistory = async ({
         {}
     );
 
+const composeTableRowLine = (row: string[]) => `|${row.join("|")}|`;
+
+const composeHeaderLines = () => {
+    return [HEADER, Array<string>(HEADER.length).fill("----")].map(
+        composeTableRowLine
+    );
+};
+
+const composeRevisionHistory = ({
+    prevRevisionHistory,
+    newRevisionHistory,
+}: {
+    prevRevisionHistory: string[];
+    newRevisionHistory: string[];
+}) => {
+    return [
+        "",
+        `<!-- ${START_COMMENT} -->`,
+        ...composeHeaderLines(),
+        ...prevRevisionHistory,
+        ...newRevisionHistory,
+        `<!-- ${END_COMMENT} -->`,
+        "",
+    ].join("\n");
+};
+
+export const updateRevisionHistory = async ({
+    prNumber,
+    specDir,
+    chapterIndexFilename,
+}: UpdateRevisionHistoryOptions): Promise<void> => {
+    const commits = await getRevisionHistoryCommitsOnPullRequest(prNumber);
+    const commitsGroupedByChapter = groupCommitsByChapter(specDir, commits);
+
     Object.keys(commitsGroupedByChapter).forEach((chapter) => {
         const newRevisionHistory = commitsGroupedByChapter[chapter]
             .map(({ commit }) => extractRowDataFromCommit(commit))
             .map(composeTableRowLine);
 
-        const indexFilePath = `${specDir}/${chapter}/_index.md`;
+        const indexFilePath = `${specDir}/${chapter}/${chapterIndexFilename}`;
         const { startAt, endAt, matched } = matchSection({
             filePath: indexFilePath,
             matchesStart,
