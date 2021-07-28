@@ -4,6 +4,7 @@ import * as core from "@actions/core";
 import {
     getPullRequestBranchName,
     commitChangesToBranch,
+    getRevisionHistoryCommitsOnPullRequest,
 } from "./utils/github";
 import { updateToc } from "./toc";
 import { generatePdf } from "./generate-pdf";
@@ -38,10 +39,13 @@ async function run() {
     //     commitMessage: "Update TOC",
     // });
 
-    updateRevisionHistory({
-        prNumber,
-        specDir,
-    });
+    const commits = await getRevisionHistoryCommitsOnPullRequest(prNumber);
+    console.log(commits);
+
+    // updateRevisionHistory({
+    //     prNumber,
+    //     specDir,
+    // });
     // await commitChangesToBranch({
     //     branchName,
     //     files: glob
