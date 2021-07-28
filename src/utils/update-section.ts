@@ -46,6 +46,4 @@ export function updateSection({
     ].join("\n");
 
     fs.writeFileSync(filePath, updatedContent, "utf8");
-
-    console.log(fs.readFileSync(filePath, "utf8").toString());
 }
