@@ -1,7 +1,8 @@
 name: Spec Generator
 on:
-    pull_request:
-        types: [opened, labeled, synchronize, reopened]
+    workflow_dispatch:
+    # pull_request:
+    #     types: [opened, labeled, synchronize, reopened]
 env:
     SPEC_DIR: ./sample-spec
     OUTPUT_DIR: ./sample-spec
@@ -9,7 +10,7 @@ env:
     SECTION_CONTENTS_FILENAME: _contents
 jobs:
     generatePDF:
-        if: ${{ contains(github.event.pull_request.labels.*.names, 'update spec') }}
+        #if: ${{ contains(github.event.pull_request.labels.*.names, 'update spec') }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2

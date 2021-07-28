@@ -15,7 +15,8 @@ async function run() {
     const chapterContentsFilename = core.getInput("chapterContentsFilename");
     const outputDir = core.getInput("outputDir");
     const outputFilename = core.getInput("outputFilename");
-    const prNumber = +core.getInput("prNumber");
+    // const prNumber = +core.getInput("prNumber");
+    const prNumber = 22;
 
     const author = {
         name: "github-actions",
