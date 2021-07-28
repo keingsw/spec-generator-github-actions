@@ -13,8 +13,17 @@ import { findMarkdownFiles } from "./utils/fs";
 async function run() {
     const specDir = core.getInput("specDir");
     const chapterContentsFilename = core.getInput("chapterContentsFilename");
+    const chapterIndexFilename = core.getInput("chapterIndexFilename");
     const outputDir = core.getInput("outputDir");
     const outputFilename = core.getInput("outputFilename");
+
+    console.log({
+        specDir,
+        chapterContentsFilename,
+        chapterIndexFilename,
+        outputDir,
+        outputFilename,
+    });
     // const prNumber = +core.getInput("prNumber");
     const prNumber = 22;
 
