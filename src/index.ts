@@ -2,7 +2,7 @@ import path from "path";
 import glob from "glob";
 import * as core from "@actions/core";
 import {
-    getPullRequestBranchName,
+    getPullRequestByBranchName,
     commitChangesToBranch,
 } from "./utils/github";
 import { updateToc } from "./toc";
@@ -13,58 +13,65 @@ import { findMarkdownFiles } from "./utils/fs";
 async function run() {
     const specDir = core.getInput("specDir");
     const chapterContentsFilename = core.getInput("chapterContentsFilename");
+    const chapterIndexFilename = core.getInput("chapterIndexFilename");
     const outputDir = core.getInput("outputDir");
     const outputFilename = core.getInput("outputFilename");
-    // const prNumber = +core.getInput("prNumber");
-    const prNumber = 22;
 
-    const author = {
-        name: "github-actions",
-        email: "github-actions@github.com",
-    };
+    const [branchName] = core.getInput("branchRef").split("/").slice(-1);
+    const pr = await getPullRequestByBranchName(branchName);
+    console.log({ branchName, pr });
 
-    const branchName = await getPullRequestBranchName(prNumber);
+    // TODO: get PR from branchName
 
-    updateToc({
-        specDir,
-        chapterContentsFilename,
-    });
-    await commitChangesToBranch({
-        branchName,
-        files: findMarkdownFiles(specDir, chapterContentsFilename).map(
-            (filePath) => path.relative("./", filePath)
-        ),
-        author,
-        commitMessage: "Update TOC",
-    });
+    // const author = {
+    //     name: "github-actions",
+    //     email: "github-actions@github.com",
+    // };
 
-    updateRevisionHistory({
-        prNumber,
-        specDir,
-    });
-    await commitChangesToBranch({
-        branchName,
-        files: findMarkdownFiles(specDir, chapterContentsFilename).map(
-            (filePath) => path.relative("./", filePath)
-        ),
-        author,
-        commitMessage: "Update Revision History",
-    });
+    // //const branchName = await getPullRequestBranchName(prNumber);
 
-    await generatePdf({
-        specDir,
-        chapterContentsFilename,
-        outputDir,
-        outputFilename,
-    });
-    await commitChangesToBranch({
-        branchName,
-        files: glob
-            .sync(`${outputDir}/${outputFilename}`)
-            .map((filePath) => path.relative("./", filePath)),
-        author,
-        commitMessage: "Re-generate PDF",
-    });
+    // updateToc({
+    //     specDir,
+    //     chapterIndexFilename,
+    //     chapterContentsFilename,
+    // });
+    // await commitChangesToBranch({
+    //     branchName,
+    //     files: findMarkdownFiles(specDir).map((filePath) =>
+    //         path.relative("./", filePath)
+    //     ),
+    //     author,
+    //     commitMessage: "Update TOC",
+    // });
+
+    // updateRevisionHistory({
+    //     prNumber,
+    //     specDir,
+    //     chapterIndexFilename,
+    // });
+    // await commitChangesToBranch({
+    //     branchName,
+    //     files: findMarkdownFiles(specDir).map((filePath) =>
+    //         path.relative("./", filePath)
+    //     ),
+    //     author,
+    //     commitMessage: "Update Revision History",
+    // });
+
+    // await generatePdf({
+    //     specDir,
+    //     chapterContentsFilename,
+    //     outputDir,
+    //     outputFilename,
+    // });
+    // await commitChangesToBranch({
+    //     branchName,
+    //     files: glob
+    //         .sync(`${outputDir}/${outputFilename}`)
+    //         .map((filePath) => path.relative("./", filePath)),
+    //     author,
+    //     commitMessage: "Re-generate PDF",
+    // });
 }
 
 run();

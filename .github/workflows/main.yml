@@ -1,18 +1,32 @@
 name: Spec Generator
 on:
     workflow_dispatch:
-    # pull_request:
-    #     types: [opened, labeled, synchronize, reopened]
-env:
-    SPEC_DIR: ./sample-spec
-    OUTPUT_DIR: ./sample-spec
-    OUTPUT_FILENAME: spec.pdf
-    SECTION_CONTENTS_FILENAME: _contents
+        inputs:
+            specDir:
+                description: "Markdown files directory"
+                default: "sample-spec"
+                required: true
+            outputDir:
+                description: "PDF file directory"
+                default: "./sample-spec"
+                required: true
+            outputFilename:
+                description: "PDF file name"
+                default: "spec.pdf"
+                required: true
+            chapterContentsFilename:
+                description: "chapter contents filename"
+                default: "_contents.md"
+                required: true
+            chapterIndexFilename:
+                description: "chapter index filename"
+                default: "_index.md"
+                required: true
 jobs:
     generatePDF:
-        #if: ${{ contains(github.event.pull_request.labels.*.names, 'update spec') }}
         runs-on: ubuntu-latest
         steps:
+            - run: echo '${{ toJson(github) }}'
             - uses: actions/checkout@v2
             - uses: actions/setup-node@v2
               with:
@@ -25,11 +39,13 @@ jobs:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
                   repository: ${{ github.repository }}
                   prNumber: ${{ github.event.pull_request.number }}
-                  specDir: ${{ env.SPEC_DIR }}
-                  outputDir: ${{ env.OUTPUT_DIR }}
-                  outputFilename: ${{ env.OUTPUT_FILENAME }}
-                  chapterContentsFilename: ${{ env.SECTION_CONTENTS_FILENAME }}
+                  branchRef: ${{ github.event.ref }}
+                  specDir: ${{ github.event.inputs.specDir }}
+                  outputDir: ${{ github.event.inputs.outputDir }}
+                  outputFilename: ${{ github.event.inputs.outputFilename }}
+                  chapterContentsFilename: ${{ github.event.inputs.chapterContentsFilename }}
+                  chapterIndexFilename: ${{ github.event.inputs.chapterIndexFilename }}
             - uses: actions/upload-artifact@v2
               with:
                   name: spec-pdf
-                  path: ${{ env.OUTPUT_DIR }}/${{ env.OUTPUT_FILENAME }}
+                  path: ${{ github.event.inputs.outputDir }}/${{ github.event.inputs.outputFilename }}
