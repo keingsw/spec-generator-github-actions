@@ -42,6 +42,11 @@ jobs:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
                   repository: ${{ github.repository }}
                   prNumber: ${{ github.event.pull_request.number }}
+                  specDir: ${{ github.event.inputs.specDir }}
+                  outputDir: ${{ github.event.inputs.outputDir }}
+                  outputFilename: ${{ github.event.inputs.outputFilename }}
+                  chapterContentsFilename: ${{ github.event.inputs.chapterContentsFilename }}
+                  chapterIndexFilename: ${{ github.event.inputs.chapterIndexFilename }}
             - uses: actions/upload-artifact@v2
               with:
                   name: spec-pdf
