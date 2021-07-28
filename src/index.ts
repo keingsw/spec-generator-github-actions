@@ -18,60 +18,55 @@ async function run() {
     const outputFilename = core.getInput("outputFilename");
 
     const [branchName] = core.getInput("branchRef").split("/").slice(-1);
-    const pr = await getPullRequestByBranchName(branchName);
-    console.log({ branchName, pr });
+    const [{ number: prNumber }] = await getPullRequestByBranchName(branchName);
 
-    // TODO: get PR from branchName
+    const author = {
+        name: "github-actions",
+        email: "github-actions@github.com",
+    };
 
-    // const author = {
-    //     name: "github-actions",
-    //     email: "github-actions@github.com",
-    // };
+    updateToc({
+        specDir,
+        chapterIndexFilename,
+        chapterContentsFilename,
+    });
+    await commitChangesToBranch({
+        branchName,
+        files: findMarkdownFiles(specDir).map((filePath) =>
+            path.relative("./", filePath)
+        ),
+        author,
+        commitMessage: "Update TOC",
+    });
 
-    // //const branchName = await getPullRequestBranchName(prNumber);
+    updateRevisionHistory({
+        prNumber,
+        specDir,
+        chapterIndexFilename,
+    });
+    await commitChangesToBranch({
+        branchName,
+        files: findMarkdownFiles(specDir).map((filePath) =>
+            path.relative("./", filePath)
+        ),
+        author,
+        commitMessage: "Update Revision History",
+    });
 
-    // updateToc({
-    //     specDir,
-    //     chapterIndexFilename,
-    //     chapterContentsFilename,
-    // });
-    // await commitChangesToBranch({
-    //     branchName,
-    //     files: findMarkdownFiles(specDir).map((filePath) =>
-    //         path.relative("./", filePath)
-    //     ),
-    //     author,
-    //     commitMessage: "Update TOC",
-    // });
-
-    // updateRevisionHistory({
-    //     prNumber,
-    //     specDir,
-    //     chapterIndexFilename,
-    // });
-    // await commitChangesToBranch({
-    //     branchName,
-    //     files: findMarkdownFiles(specDir).map((filePath) =>
-    //         path.relative("./", filePath)
-    //     ),
-    //     author,
-    //     commitMessage: "Update Revision History",
-    // });
-
-    // await generatePdf({
-    //     specDir,
-    //     chapterContentsFilename,
-    //     outputDir,
-    //     outputFilename,
-    // });
-    // await commitChangesToBranch({
-    //     branchName,
-    //     files: glob
-    //         .sync(`${outputDir}/${outputFilename}`)
-    //         .map((filePath) => path.relative("./", filePath)),
-    //     author,
-    //     commitMessage: "Re-generate PDF",
-    // });
+    await generatePdf({
+        specDir,
+        chapterContentsFilename,
+        outputDir,
+        outputFilename,
+    });
+    await commitChangesToBranch({
+        branchName,
+        files: glob
+            .sync(`${outputDir}/${outputFilename}`)
+            .map((filePath) => path.relative("./", filePath)),
+        author,
+        commitMessage: "Re-generate PDF",
+    });
 }
 
 run();
