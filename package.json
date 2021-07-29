@@ -5,9 +5,8 @@
   "main": "index.js",
   "devDependencies": {
     "@octokit/types": "^6.21.1",
-    "@types/markdown-pdf": "^9.0.1",
+    "@types/marked": "^2.0.4",
     "@types/node": "^16.3.3",
-    "@types/through2": "^2.0.36",
     "@typescript-eslint/eslint-plugin": "^4.28.4",
     "@typescript-eslint/parser": "^4.28.4",
     "eslint": "^7.31.0",
@@ -37,7 +36,7 @@
     "@types/glob": "^7.1.4",
     "glob": "^7.1.7",
     "js-base64": "^3.6.1",
-    "markdown-pdf": "^10.0.0",
-    "through2": "^4.0.2"
+    "md-to-pdf": "^4.0.0",
+    "puppeteer": "^10.1.0"
   }
 }

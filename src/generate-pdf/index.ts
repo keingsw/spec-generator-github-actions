@@ -1,5 +1,5 @@
-import markdownPdf from "markdown-pdf";
-import through2 from "through2";
+import fs from "fs";
+import { mdToPdf } from "md-to-pdf";
 import { findMarkdownFiles } from "../utils/fs";
 
 interface GeneratePdfOptions {
@@ -9,31 +9,30 @@ interface GeneratePdfOptions {
     outputFilename: string;
 }
 
-const pageBreak = '\n\n<div style="page-break-before: always;"></div>\n\n';
+const pageBreak = '\n\n<div class="page-break"></div>\n\n';
 
-function preProcessMd() {
-    return through2(function (data, enc, cb) {
-        let nd = data.toString().replace(/<!-- PAGEBREAK -->/g, pageBreak);
-        cb(null, Buffer.from(nd) + pageBreak);
-    });
-}
+const concatMarkdownFiles = (markdownFiles: string[]) => {
+    return markdownFiles
+        .reduce((accumulator: string[], filePath: string) => {
+            accumulator.push(fs.readFileSync(filePath, "utf8").toString());
+            return accumulator;
+        }, [])
+        .join(pageBreak);
+};
 
-export const generatePdf = ({
+export const generatePdf = async ({
     specDir,
     chapterContentsFilename,
     outputDir,
     outputFilename,
-}: GeneratePdfOptions): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        const markdownFiles = findMarkdownFiles(specDir).filter(
-            (filename) => !filename.includes(chapterContentsFilename)
-        );
+}: GeneratePdfOptions) => {
+    const markdownFiles = findMarkdownFiles(specDir).filter(
+        (filename) => !filename.includes(chapterContentsFilename)
+    );
+    const content = concatMarkdownFiles(markdownFiles);
+    const pdf = await mdToPdf({ content });
 
-        markdownPdf({
-            preProcessMd,
-            remarkable: { breaks: true, html: true },
-        })
-            .concat.from.paths(markdownFiles, {})
-            .to(`${outputDir}/${outputFilename}`, () => resolve());
-    });
+    if (pdf) {
+        fs.writeFileSync(`${outputDir}/${outputFilename}`, pdf.content, "utf8");
+    }
 };
