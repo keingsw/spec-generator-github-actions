@@ -135,27 +135,34 @@ export const updateRevisionHistory = async ({
     const commits = await getRevisionHistoryCommitsOnPullRequest(prNumber);
     const commitsGroupedByChapter = groupCommitsByChapter(specDir, commits);
 
-    await Object.keys(commitsGroupedByChapter).forEach(async (chapter) => {
-        const indexFilePath = `${specDir}/${chapter}/${chapterIndexFilename}`;
+    await Promise.all(
+        Object.keys(commitsGroupedByChapter).map(async (chapter) => {
+            const indexFilePath = `${specDir}/${chapter}/${chapterIndexFilename}`;
 
-        const originalRevisionHistory = await getOriginalRevisionHistory(
-            indexFilePath,
-            baseBranchName
-        );
-        const newRevisionHistory = commitsGroupedByChapter[chapter]
-            .map(({ commit }) => extractRowDataFromCommit(commit))
-            .map(composeTableRowLine);
+            const originalRevisionHistory = await getOriginalRevisionHistory(
+                indexFilePath,
+                baseBranchName
+            );
+            const newRevisionHistory = commitsGroupedByChapter[chapter]
+                .map(({ commit }) => extractRowDataFromCommit(commit))
+                .map(composeTableRowLine);
 
-        const content = fs.readFileSync(indexFilePath, "utf8").toString();
-        const updatedContent = updateSection({
-            content,
-            matchesStart,
-            matchesEnd,
-            newContent: composeRevisionHistory({
-                originalRevisionHistory,
-                newRevisionHistory,
-            }),
-        });
-        fs.writeFileSync(indexFilePath, updatedContent, "utf8");
-    });
+            const content = fs.readFileSync(indexFilePath, "utf8").toString();
+            const updatedContent = updateSection({
+                content,
+                matchesStart,
+                matchesEnd,
+                newContent: composeRevisionHistory({
+                    originalRevisionHistory,
+                    newRevisionHistory,
+                }),
+            });
+            fs.writeFileSync(indexFilePath, updatedContent, "utf8");
+            console.log(
+                indexFilePath,
+                fs.readFileSync(indexFilePath).toString(),
+                "\n\n"
+            );
+        })
+    );
 };
