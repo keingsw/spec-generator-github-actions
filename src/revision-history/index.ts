@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import dateformat from "dateformat";
 import { Base64 } from "js-base64";
 import {
     getRevisionHistoryCommitsOnPullRequest,
@@ -45,12 +46,17 @@ const extractChangedChaptersFromCommit = (specDir: string, commit: Commit) => {
 };
 
 const extractRowDataFromCommit = (commit: Commit["commit"]) => {
-    return [
-        "0.x", // TODO: auto-numbering → Think how?
-        commit.author ? commit.author.date || "" : "",
-        commit.author ? commit.author.name || "" : "",
-        commit.message,
-    ];
+    const pattern = new RegExp(`^\\[revision history\\]\\[(.*)\\]\s?(.*)$`);
+
+    const [, revisionNo, revisionMessage] = commit.message.match(pattern) || [];
+    const revisedAt =
+        commit.author && commit.author.date
+            ? dateformat(new Date(commit.author.date), "yyyy/mm/dd")
+            : "";
+    const revisedBy =
+        commit.author && commit.author.name ? commit.author.name : "";
+
+    return [revisionNo, revisedAt, revisedBy, revisionMessage];
 };
 
 const getOriginalRevisionHistory = async (
