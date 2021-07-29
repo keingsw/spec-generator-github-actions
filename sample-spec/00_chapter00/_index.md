@@ -2,14 +2,14 @@
 
 [START revision history]: <>
 
-| 改訂番号 | 改訂日    | 改訂者   | 改訂内容     |
-| -------- | --------- | -------- | ------------ |
+|改訂番号|改訂日|改訂者|改訂内容|
+|----|----|----|----|
 | 0.0      | 2010/01/1 | testUser | 編集しました |
+|0.x|2021-07-29T08:01:52Z|keingsw|[revision history][0.1] 文章を追加しました|
 
 [END revision history]: <>
 
 [START toc]: <>
-
 
 - [Section1](#section1)
   - [Lorem ipsum dolor sit amet](#lorem-ipsum-dolor-sit-amet)

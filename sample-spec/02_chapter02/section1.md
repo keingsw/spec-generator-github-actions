@@ -2,7 +2,6 @@
 
 [START toc]: <>
 
-
 - [Section1](#section1)
   - [Lorem ipsum dolor sit amet](#lorem-ipsum-dolor-sit-amet)
   - [Suspendisse ultricies pellentesque purus](#suspendisse-ultricies-pellentesque-purus)
