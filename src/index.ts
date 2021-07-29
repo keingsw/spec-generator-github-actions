@@ -54,7 +54,7 @@ async function run() {
             ],
             author,
             commitMessage:
-                "Update TOC and revision history, and re-generate PDF",
+                "[GitHub Action] Update TOC and revision history, and re-generate PDF",
         });
     } catch (error) {
         core.setFailed(error.message);
