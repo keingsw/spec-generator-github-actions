@@ -161,11 +161,6 @@ export const updateRevisionHistory = async ({
                 }),
             });
             fs.writeFileSync(indexFilePath, updatedContent, "utf8");
-            console.log(
-                indexFilePath,
-                fs.readFileSync(indexFilePath).toString(),
-                "\n\n"
-            );
         })
     );
 };
