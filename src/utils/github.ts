@@ -1,8 +1,7 @@
-import { readFileSync } from "fs-extra";
+import fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { Endpoints } from "@octokit/types";
-import path from "path";
 
 interface Author {
     name: string;
@@ -34,25 +33,13 @@ const getOwnerAndRepo = () => {
     return { owner, repo };
 };
 
-const getFileAsUTF8 = (filePath: string) => readFileSync(filePath, "utf8");
-
-const getPullRequest = async (prNumber: number) => {
-    const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
-    return await octokit.rest.pulls.get({
-        owner,
-        repo,
-        pull_number: prNumber,
-    });
-};
-
 const createTreeFromFiles = async (files: string[]) => {
     const octokit = getOctokit();
     const { owner, repo } = getOwnerAndRepo();
 
     const filesBlobs = await Promise.all(
         files.map(async (filePath: string) => {
-            const content = await getFileAsUTF8(filePath);
+            const content = await fs.readFileSync(filePath, "utf8");
             const blobData = await octokit.rest.git.createBlob({
                 owner,
                 repo,
@@ -146,11 +133,6 @@ export const getPullRequestByBranchName = async (branchName: string) => {
     }
 
     return pr.data[0];
-};
-
-export const getPullRequestBranchName = async (prNumber: number) => {
-    const pr = await getPullRequest(prNumber);
-    return pr.data.head.ref;
 };
 
 export const getRevisionHistoryCommitsOnPullRequest = async (

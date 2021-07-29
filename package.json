@@ -5,7 +5,6 @@
   "main": "index.js",
   "devDependencies": {
     "@octokit/types": "^6.21.1",
-    "@types/fs-extra": "^9.0.12",
     "@types/markdown-pdf": "^9.0.1",
     "@types/node": "^16.3.3",
     "@types/through2": "^2.0.36",
@@ -36,7 +35,6 @@
     "@actions/github": "^5.0.0",
     "@technote-space/doctoc": "^2.4.11",
     "@types/glob": "^7.1.4",
-    "fs-extra": "^10.0.0",
     "glob": "^7.1.7",
     "markdown-pdf": "^10.0.0",
     "through2": "^4.0.2"
