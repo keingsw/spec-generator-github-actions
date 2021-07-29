@@ -36,6 +36,7 @@
     "@technote-space/doctoc": "^2.4.11",
     "@types/glob": "^7.1.4",
     "glob": "^7.1.7",
+    "js-base64": "^3.6.1",
     "markdown-pdf": "^10.0.0",
     "through2": "^4.0.2"
   }
