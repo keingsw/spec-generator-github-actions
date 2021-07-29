@@ -23,6 +23,30 @@ type GetCommitsResponse =
 
 export type Commit = GetCommitsResponse["data"];
 
+type GetPullRequestByBranchNameResponse =
+    Endpoints["GET /repos/{owner}/{repo}/pulls"]["response"];
+
+export type PullRequest = GetPullRequestByBranchNameResponse["data"][number];
+
+type FileContent = {
+    type: "file";
+    encoding: string;
+    size: number;
+    name: string;
+    path: string;
+    content: string;
+    sha: string;
+    url: string;
+    git_url: string;
+    html_url: string;
+    download_url: string;
+    _links: {
+        git: string;
+        self: string;
+        html: string;
+    };
+};
+
 const getOctokit = () => {
     const accessToken = core.getInput("accessToken");
     return github.getOctokit(accessToken);
@@ -133,6 +157,39 @@ export const getPullRequestByBranchName = async (branchName: string) => {
     }
 
     return pr.data[0];
+};
+
+export const getFileContentOnBranch = async ({
+    filePath,
+    branchName,
+}: {
+    filePath: string;
+    branchName: string;
+}) => {
+    const octokit = getOctokit();
+    const { owner, repo } = getOwnerAndRepo();
+
+    const content = await octokit.rest.repos.getContent({
+        owner,
+        repo,
+        path: filePath,
+        ref: branchName,
+    });
+
+    if (Array.isArray(content.data) || content.data.type !== "file") {
+        let message = `Expected a single file but `;
+
+        if (Array.isArray(content.data)) {
+            message += `a directory was retrieved`;
+        } else {
+            message += `a ${content.data.type} was retrieved`;
+        }
+
+        throw new Error(message);
+    }
+
+    // FIXME: Find a better way to type `content.data` later
+    return content.data as FileContent;
 };
 
 export const getRevisionHistoryCommitsOnPullRequest = async (

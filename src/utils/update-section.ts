@@ -1,19 +1,15 @@
 import fs from "fs";
 
-const getFileContentLines = (filePath: string) => {
-    return fs.readFileSync(filePath, "utf8").toString().split("\n");
-};
-
 export const matchSection = ({
-    filePath,
+    content,
     matchesStart,
     matchesEnd,
 }: {
-    filePath: string;
+    content: string;
     matchesStart: (line: string) => boolean;
     matchesEnd: (line: string) => boolean;
 }) => {
-    const contentLines = getFileContentLines(filePath);
+    const contentLines = content.split("\n");
     const startAt = contentLines.findIndex(matchesStart);
     const endAt = contentLines.findIndex(matchesEnd);
     const matched =
@@ -28,22 +24,25 @@ export const matchSection = ({
 };
 
 export const updateSection = ({
-    filePath,
-    startAt,
-    endAt,
+    content,
+    matchesStart,
+    matchesEnd,
     newContent,
 }: {
-    filePath: string;
-    startAt: number;
-    endAt: number;
+    content: string;
+    matchesStart: (line: string) => boolean;
+    matchesEnd: (line: string) => boolean;
     newContent: string;
 }) => {
-    const contentLines = getFileContentLines(filePath);
-    const updatedContent = [
+    const { startAt, endAt, contentLines } = matchSection({
+        content,
+        matchesStart,
+        matchesEnd,
+    });
+
+    return [
         ...contentLines.slice(0, startAt),
         newContent,
         ...contentLines.slice(endAt + 1),
     ].join("\n");
-
-    fs.writeFileSync(filePath, updatedContent, "utf8");
 };

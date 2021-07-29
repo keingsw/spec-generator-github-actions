@@ -1,12 +1,16 @@
+import fs from "fs";
 import path from "path";
+import { Base64 } from "js-base64";
 import {
     getRevisionHistoryCommitsOnPullRequest,
+    getFileContentOnBranch,
     Commit,
+    PullRequest,
 } from "../utils/github";
 import { matchSection, updateSection } from "../utils/update-section";
 
 interface UpdateRevisionHistoryOptions {
-    prNumber: number;
+    pullRequest: PullRequest;
     specDir: string;
     chapterIndexFilename: string;
 }
@@ -49,6 +53,28 @@ const extractRowDataFromCommit = (commit: Commit["commit"]) => {
     ];
 };
 
+const getOriginalRevisionHistory = async (
+    indexFilePath: string,
+    baseBranchName: string
+) => {
+    const { content: originalFileContentBase64 } = await getFileContentOnBranch(
+        {
+            filePath: indexFilePath,
+            branchName: baseBranchName,
+        }
+    );
+
+    const originalFileContent = Base64.decode(originalFileContentBase64);
+    const { matched } = matchSection({
+        content: originalFileContent,
+        matchesStart,
+        matchesEnd,
+    });
+
+    // NOTE: trim header, division and line break before END_COMMENT
+    return matched.slice(3, -1);
+};
+
 const groupCommitsByChapter = (specDir: string, commits: Commit[]) =>
     commits.reduce(
         (commitsGroupedByChapter: { [key: string]: Commit[] }, commit) => {
@@ -78,10 +104,10 @@ const composeHeaderLines = () => {
 };
 
 const composeRevisionHistory = ({
-    prevRevisionHistory,
+    originalRevisionHistory,
     newRevisionHistory,
 }: {
-    prevRevisionHistory: string[];
+    originalRevisionHistory: string[];
     newRevisionHistory: string[];
 }) => {
     return [
@@ -89,7 +115,7 @@ const composeRevisionHistory = ({
         `[${START_COMMENT}]: <>`,
         "",
         ...composeHeaderLines(),
-        ...prevRevisionHistory,
+        ...originalRevisionHistory,
         ...newRevisionHistory,
         "",
         `[${END_COMMENT}]: <>`,
@@ -98,34 +124,38 @@ const composeRevisionHistory = ({
 };
 
 export const updateRevisionHistory = async ({
-    prNumber,
+    pullRequest,
     specDir,
     chapterIndexFilename,
 }: UpdateRevisionHistoryOptions): Promise<void> => {
+    const {
+        number: prNumber,
+        base: { ref: baseBranchName },
+    } = pullRequest;
     const commits = await getRevisionHistoryCommitsOnPullRequest(prNumber);
     const commitsGroupedByChapter = groupCommitsByChapter(specDir, commits);
 
-    Object.keys(commitsGroupedByChapter).forEach((chapter) => {
+    await Object.keys(commitsGroupedByChapter).forEach(async (chapter) => {
+        const indexFilePath = `${specDir}/${chapter}/${chapterIndexFilename}`;
+
+        const originalRevisionHistory = await getOriginalRevisionHistory(
+            indexFilePath,
+            baseBranchName
+        );
         const newRevisionHistory = commitsGroupedByChapter[chapter]
             .map(({ commit }) => extractRowDataFromCommit(commit))
             .map(composeTableRowLine);
 
-        const indexFilePath = `${specDir}/${chapter}/${chapterIndexFilename}`;
-        const { startAt, endAt, matched } = matchSection({
-            filePath: indexFilePath,
+        const content = fs.readFileSync(indexFilePath, "utf8").toString();
+        const updatedContent = updateSection({
+            content,
             matchesStart,
             matchesEnd,
-        });
-
-        updateSection({
-            filePath: indexFilePath,
-            startAt,
-            endAt,
             newContent: composeRevisionHistory({
-                // NOTE: trim header, division and line breaks
-                prevRevisionHistory: matched.slice(3, -1),
+                originalRevisionHistory,
                 newRevisionHistory,
             }),
         });
+        fs.writeFileSync(indexFilePath, updatedContent, "utf8");
     });
 };

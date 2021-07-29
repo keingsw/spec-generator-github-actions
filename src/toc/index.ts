@@ -64,18 +64,14 @@ const wrapTocWithAnchorComment = (toc: string) => {
 };
 
 const updateSectionToc = ({ toc, path }: GenerateTocResult) => {
-    const { startAt, endAt } = matchSection({
-        filePath: path,
+    const content = fs.readFileSync(path, "utf8").toString();
+    const updatedContent = updateSection({
+        content,
         matchesStart,
         matchesEnd,
-    });
-
-    updateSection({
-        filePath: path,
-        startAt,
-        endAt,
         newContent: wrapTocWithAnchorComment(toc),
     });
+    fs.writeFileSync(path, updatedContent, "utf8");
 };
 
 const updateChapterToc = (
@@ -84,21 +80,17 @@ const updateChapterToc = (
 ) => {
     const dirname = path.dirname(generateTocResults[0].path);
     const indexFilePath = `${dirname}/${chapterIndexFilename}`;
+    const content = fs.readFileSync(indexFilePath, "utf8").toString();
 
-    const { startAt, endAt } = matchSection({
-        filePath: indexFilePath,
+    const updatedContent = updateSection({
+        content,
         matchesStart,
         matchesEnd,
-    });
-
-    updateSection({
-        filePath: indexFilePath,
-        startAt,
-        endAt,
         newContent: wrapTocWithAnchorComment(
             generateTocResults.map(({ toc }) => toc).join("\n")
         ),
     });
+    fs.writeFileSync(indexFilePath, updatedContent, "utf8");
 };
 
 export const updateToc = ({

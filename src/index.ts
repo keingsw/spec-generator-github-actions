@@ -25,9 +25,7 @@ async function run() {
         const outputFilename = core.getInput("outputFilename");
 
         const [branchName] = core.getInput("branchRef").split("/").slice(-1);
-        const { number: prNumber } = await getPullRequestByBranchName(
-            branchName
-        );
+        const pullRequest = await getPullRequestByBranchName(branchName);
 
         updateToc({
             specDir,
@@ -35,7 +33,7 @@ async function run() {
             chapterContentsFilename,
         });
         await updateRevisionHistory({
-            prNumber,
+            pullRequest,
             specDir,
             chapterIndexFilename,
         });
