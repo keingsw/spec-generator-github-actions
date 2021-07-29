@@ -139,6 +139,12 @@ export const getPullRequestByBranchName = async (branchName: string) => {
         head: `${owner}/${branchName}`,
     });
 
+    if (pr.data.length !== 1) {
+        throw new Error(
+            `Expected only 1 pull request but no or more than one pull requests are found associated to the given branch (${branchName}).`
+        );
+    }
+
     return pr.data[0];
 };
 
