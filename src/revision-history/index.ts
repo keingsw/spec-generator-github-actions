@@ -71,7 +71,7 @@ const getOriginalRevisionHistory = async (
     });
 
     // NOTE: trim prepended/appended line breaks, header, and division
-    return matched.filter((line) => !!line).slice(3);
+    return matched.filter((line) => !!line).slice(2);
 };
 
 const groupCommitsByChapter = (specDir: string, commits: Commit[]) =>
