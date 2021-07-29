@@ -1,4 +1,37 @@
-name: 'Generate Specification Document in PDF'
+name: MD <-> PDF Spec Generator
+
+description: Convert markdown files into PDF and generate specification document via GitHub Actions.
+
+inputs:
+  accessToken:
+    description: Secret GitHub API token
+    default: ${{ github.token }}
+    required: true
+  specDir:
+    description: Markdown files directory
+    default: "."
+    required: true
+  outputDir:
+    description: PDF file directory
+    default: "."
+    required: true
+  outputFilename:
+    description: PDF file name
+    default: "spec.pdf"
+    required: true
+  chapterContentsFilename:
+    description: chapter contents filename
+    default: _contents.md
+    required: true
+  chapterIndexFilename:
+    description: chapter index filename
+    default: _index.md
+    required: true
+
+outputs:
+  pdfPath:
+    description: "File path to generated PDF"
+
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: "node12"
+  main: "dist/index.js"
