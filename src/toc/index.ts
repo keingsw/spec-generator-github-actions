@@ -58,9 +58,7 @@ const generateTocPerChapter = (chapterContentFile: string) => {
 };
 
 const wrapTocWithAnchorComment = (toc: string) => {
-    return ["", `[${START_COMMENT}]: <>`, toc, `[${END_COMMENT}]: <>`, ""].join(
-        "\n"
-    );
+    return [`[${START_COMMENT}]: <>`, toc, `[${END_COMMENT}]: <>`].join("\n");
 };
 
 const updateSectionToc = ({ toc, path }: GenerateTocResult) => {
