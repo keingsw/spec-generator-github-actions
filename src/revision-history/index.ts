@@ -20,12 +20,12 @@ const START_COMMENT = "START revision history";
 const END_COMMENT = "END revision history";
 
 const matchesStart = (line: string) => {
-    const pattern = new RegExp(`[${START_COMMENT}]: <>`);
+    const pattern = new RegExp(`^\\[${START_COMMENT}\\]: <>`);
     return pattern.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const pattern = new RegExp(`[${END_COMMENT}]: <>`);
+    const pattern = new RegExp(`^\\[${END_COMMENT}\\]: <>`);
     return pattern.test(line);
 };
 
