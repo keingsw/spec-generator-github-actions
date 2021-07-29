@@ -37,7 +37,6 @@ jobs:
               with:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
                   repository: ${{ github.repository }}
-                  prNumber: ${{ github.event.pull_request.number }}
                   branchRef: ${{ github.event.ref }}
                   specDir: ${{ github.event.inputs.specDir }}
                   outputDir: ${{ github.event.inputs.outputDir }}
