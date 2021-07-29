@@ -8,7 +8,7 @@ on:
                 required: true
             outputDir:
                 description: "PDF file directory"
-                default: "./sample-spec"
+                default: "sample-spec"
                 required: true
             outputFilename:
                 description: "PDF file name"
