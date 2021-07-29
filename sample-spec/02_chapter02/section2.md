@@ -1,7 +1,7 @@
 ## Section2
 
-[START toc]: <>
 
+[START toc]: <>
 
 - [Section2](#section2)
   - [Lorem ipsum dolor sit amet](#lorem-ipsum-dolor-sit-amet)
@@ -9,6 +9,7 @@
   - [Nam ut viverra mauris](#nam-ut-viverra-mauris)
 
 [END toc]: <>
+
 
 ### Lorem ipsum dolor sit amet
 
