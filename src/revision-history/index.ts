@@ -63,7 +63,6 @@ const getOriginalRevisionHistory = async (
             branchName: baseBranchName,
         }
     );
-
     const originalFileContent = Base64.decode(originalFileContentBase64);
     const { matched } = matchSection({
         content: originalFileContent,
@@ -71,8 +70,8 @@ const getOriginalRevisionHistory = async (
         matchesEnd,
     });
 
-    // NOTE: trim header, division and line break before END_COMMENT
-    return matched.slice(3, -1);
+    // NOTE: trim prepended/appended line breaks, header, and division
+    return matched.filter((line) => !!line).slice(3);
 };
 
 const groupCommitsByChapter = (specDir: string, commits: Commit[]) =>
@@ -111,7 +110,6 @@ const composeRevisionHistory = ({
     newRevisionHistory: string[];
 }) => {
     return [
-        "",
         `[${START_COMMENT}]: <>`,
         "",
         ...composeHeaderLines(),
@@ -119,7 +117,6 @@ const composeRevisionHistory = ({
         ...newRevisionHistory,
         "",
         `[${END_COMMENT}]: <>`,
-        "",
     ].join("\n");
 };
 
