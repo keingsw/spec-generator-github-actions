@@ -2,35 +2,26 @@ import fs from "fs";
 import path from "path";
 import glob from "glob";
 import { transform } from "@technote-space/doctoc";
-import { matchSection, updateSection } from "../utils/update-section";
+import { updateSection } from "../utils/update-section";
+import * as inputs from "../utils/inputs";
 
 interface GenerateTocResult extends ReturnType<typeof transform> {
-    path: string;
+    filePath: string;
 }
-
-interface UpdateTocOptions {
-    specDir: string;
-    chapterIndexFilename: string;
-    chapterContentsFilename: string;
-}
-
-const START_COMMENT = "START toc";
-const END_COMMENT = "END toc";
 
 const matchesStart = (line: string) => {
-    const pattern = new RegExp(`^\\[${START_COMMENT}\\]: <>`);
-    return pattern.test(line);
+    const { start } = inputs.getTocSectionRegExp();
+    return start.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const pattern = new RegExp(`^\\[${END_COMMENT}\\]: <>`);
-    return pattern.test(line);
+    const { end } = inputs.getTocSectionRegExp();
+    return end.test(line);
 };
 
-const findChapterContentsFiles = (
-    specDir: string,
-    chapterContentsFilename: string
-) => {
+const findChapterContentsFiles = () => {
+    const specDir = inputs.getSpecDir();
+    const chapterContentsFilename = inputs.getChapterContentsFilename();
     return glob.sync(`${specDir}/**/${chapterContentsFilename}`);
 };
 
@@ -43,10 +34,10 @@ const getSectionsInOrder = (chapterContentFilePath: string) => {
     return sections.map((sectionName) => `${dirname}/${sectionName}.md`);
 };
 
-const generateSectionToc = (path: string): GenerateTocResult => {
+const generateSectionToc = (filePath: string): GenerateTocResult => {
     return {
-        path,
-        ...transform(fs.readFileSync(path, "utf8"), { isNotitle: true }),
+        filePath,
+        ...transform(fs.readFileSync(filePath, "utf8"), { isNotitle: true }),
     };
 };
 
@@ -58,26 +49,28 @@ const generateTocPerChapter = (chapterContentFile: string) => {
 };
 
 const wrapTocWithAnchorComment = (toc: string) => {
-    return [`[${START_COMMENT}]: <>`, toc, `[${END_COMMENT}]: <>`].join("\n");
+    const tocSectionMdComments = inputs.getTocSectionMdComments();
+    return [tocSectionMdComments.start, toc, tocSectionMdComments.end].join(
+        "\n"
+    );
 };
 
-const updateSectionToc = ({ toc, path }: GenerateTocResult) => {
-    const content = fs.readFileSync(path, "utf8").toString();
+const updateSectionToc = ({ toc, filePath }: GenerateTocResult) => {
+    const content = fs.readFileSync(filePath, "utf8").toString();
     const updatedContent = updateSection({
         content,
         matchesStart,
         matchesEnd,
         newContent: wrapTocWithAnchorComment(toc),
     });
-    fs.writeFileSync(path, updatedContent, "utf8");
+    fs.writeFileSync(filePath, updatedContent, "utf8");
 };
 
-const updateChapterToc = (
-    chapterIndexFilename: string,
-    generateTocResults: GenerateTocResult[]
-) => {
-    const dirname = path.dirname(generateTocResults[0].path);
+const updateChapterToc = (generateTocResults: GenerateTocResult[]) => {
+    const dirname = path.dirname(generateTocResults[0].filePath);
+    const chapterIndexFilename = inputs.getChapterIndexFilename();
     const indexFilePath = `${dirname}/${chapterIndexFilename}`;
+
     const content = fs.readFileSync(indexFilePath, "utf8").toString();
 
     const updatedContent = updateSection({
@@ -91,15 +84,8 @@ const updateChapterToc = (
     fs.writeFileSync(indexFilePath, updatedContent, "utf8");
 };
 
-export const updateToc = ({
-    specDir,
-    chapterIndexFilename,
-    chapterContentsFilename,
-}: UpdateTocOptions) => {
-    const chapterContentsFiles = findChapterContentsFiles(
-        specDir,
-        chapterContentsFilename
-    );
+export const updateToc = () => {
+    const chapterContentsFiles = findChapterContentsFiles();
 
     chapterContentsFiles.forEach((chapterContentsFile) => {
         const results = generateTocPerChapter(chapterContentsFile);
@@ -114,7 +100,7 @@ export const updateToc = ({
         });
 
         if (shouldUpdateChapterToc) {
-            updateChapterToc(chapterIndexFilename, results);
+            updateChapterToc(results);
         }
     });
 };

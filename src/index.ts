@@ -3,10 +3,8 @@ import * as core from "@actions/core";
 import { updateToc } from "./toc";
 import { generatePdf } from "./generate-pdf";
 import { updateRevisionHistory } from "./revision-history";
-import {
-    getPullRequestByBranchName,
-    commitChangesToBranch,
-} from "./utils/github";
+import { commitChangesToBranch } from "./utils/github";
+import * as inputs from "./utils/inputs";
 import { findMarkdownFiles } from "./utils/fs";
 
 async function run() {
@@ -16,48 +14,25 @@ async function run() {
     };
 
     try {
-        const specDir = core.getInput("specDir");
-        const chapterContentsFilename = core.getInput(
-            "chapterContentsFilename"
-        );
-        const chapterIndexFilename = core.getInput("chapterIndexFilename");
-        const outputDir = core.getInput("outputDir");
-        const outputFilename = core.getInput("outputFilename");
+        const specDir = inputs.getSpecDir();
 
-        const [branchName] = core.getInput("branchRef").split("/").slice(-1);
-        const pullRequest = await getPullRequestByBranchName(branchName);
-
-        updateToc({
-            specDir,
-            chapterIndexFilename,
-            chapterContentsFilename,
-        });
-        await updateRevisionHistory({
-            pullRequest,
-            specDir,
-            chapterIndexFilename,
-        });
-        await generatePdf({
-            specDir,
-            chapterContentsFilename,
-            outputDir,
-            outputFilename,
-        });
+        updateToc();
+        await updateRevisionHistory();
+        const pdfPath = await generatePdf();
 
         await commitChangesToBranch({
-            branchName,
             files: [
                 ...findMarkdownFiles(specDir).map((filePath) =>
                     path.relative("./", filePath)
                 ),
-                path.relative("./", `${outputDir}/${outputFilename}`),
+                ...(pdfPath && [path.relative("./", pdfPath)]),
             ],
             author,
             commitMessage:
                 "[Spec Generator] Update TOC and revision history, and re-generate PDF",
         });
 
-        core.setOutput("pdfPath", `${outputDir}/${outputFilename}`);
+        core.setOutput("pdfPath", pdfPath);
     } catch (error) {
         core.setFailed(error.message);
     }

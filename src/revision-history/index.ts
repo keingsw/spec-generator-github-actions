@@ -3,34 +3,28 @@ import path from "path";
 import dateformat from "dateformat";
 import { Base64 } from "js-base64";
 import {
+    getPullRequestByBranchName,
     getRevisionHistoryCommitsOnPullRequest,
     getFileContentOnBranch,
     Commit,
-    PullRequest,
 } from "../utils/github";
 import { matchSection, updateSection } from "../utils/update-section";
-
-interface UpdateRevisionHistoryOptions {
-    pullRequest: PullRequest;
-    specDir: string;
-    chapterIndexFilename: string;
-}
+import * as inputs from "../utils/inputs";
 
 const HEADER = ["改訂番号", "改訂日", "改訂者", "改訂内容"];
-const START_COMMENT = "START revision history";
-const END_COMMENT = "END revision history";
 
 const matchesStart = (line: string) => {
-    const pattern = new RegExp(`^\\[${START_COMMENT}\\]: <>`);
-    return pattern.test(line);
+    const { start } = inputs.getRevisionHistorySectionRegExp();
+    return start.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const pattern = new RegExp(`^\\[${END_COMMENT}\\]: <>`);
-    return pattern.test(line);
+    const { end } = inputs.getRevisionHistorySectionRegExp();
+    return end.test(line);
 };
 
-const extractChangedChaptersFromCommit = (specDir: string, commit: Commit) => {
+const extractChangedChaptersFromCommit = (commit: Commit) => {
+    const specDir = inputs.getSpecDir();
     const pattern = new RegExp(`^${path.relative(".", specDir)}\/(.*)/.*\.md$`);
     const { files = [] } = commit;
 
@@ -46,9 +40,11 @@ const extractChangedChaptersFromCommit = (specDir: string, commit: Commit) => {
 };
 
 const extractRowDataFromCommit = (commit: Commit["commit"]) => {
-    const pattern = new RegExp(`^\\[revision history\\]\\[(.*)\\]\s?(.*)$`);
+    const revisionCommitRegExp = inputs.getRevisionCommitRegExp();
 
-    const [, revisionNo, revisionMessage] = commit.message.match(pattern) || [];
+    // FIXME: utilise named match
+    const [, revisionNo, revisionMessage] =
+        commit.message.match(revisionCommitRegExp) || [];
     const revisedAt =
         commit.author && commit.author.date
             ? dateformat(new Date(commit.author.date), "yyyy/mm/dd")
@@ -80,13 +76,10 @@ const getOriginalRevisionHistory = async (
     return matched.filter((line) => !!line).slice(2);
 };
 
-const groupCommitsByChapter = (specDir: string, commits: Commit[]) =>
+const groupCommitsByChapter = (commits: Commit[]) =>
     commits.reduce(
         (commitsGroupedByChapter: { [key: string]: Commit[] }, commit) => {
-            const changedChapters = extractChangedChaptersFromCommit(
-                specDir,
-                commit
-            );
+            const changedChapters = extractChangedChaptersFromCommit(commit);
 
             if (changedChapters) {
                 changedChapters.forEach((chapter) =>
@@ -115,28 +108,35 @@ const composeRevisionHistory = ({
     originalRevisionHistory: string[];
     newRevisionHistory: string[];
 }) => {
+    const revisionHistorySectionMdComments =
+        inputs.getRevisionHistorySectionMdComments();
     return [
-        `[${START_COMMENT}]: <>`,
+        revisionHistorySectionMdComments.start,
         "",
         ...composeHeaderLines(),
         ...originalRevisionHistory,
         ...newRevisionHistory,
         "",
-        `[${END_COMMENT}]: <>`,
+        revisionHistorySectionMdComments.end,
     ].join("\n");
 };
 
-export const updateRevisionHistory = async ({
-    pullRequest,
-    specDir,
-    chapterIndexFilename,
-}: UpdateRevisionHistoryOptions): Promise<void> => {
+export const updateRevisionHistory = async (): Promise<void> => {
+    const specDir = inputs.getSpecDir();
+    const chapterIndexFilename = inputs.getChapterIndexFilename();
+    const workingBranchName = inputs.getWorkingBranchName();
+    const revisionCommitRegExp = inputs.getRevisionCommitRegExp();
+
     const {
         number: prNumber,
         base: { ref: baseBranchName },
-    } = pullRequest;
-    const commits = await getRevisionHistoryCommitsOnPullRequest(prNumber);
-    const commitsGroupedByChapter = groupCommitsByChapter(specDir, commits);
+    } = await getPullRequestByBranchName(workingBranchName);
+
+    const commits = await getRevisionHistoryCommitsOnPullRequest(
+        prNumber,
+        revisionCommitRegExp
+    );
+    const commitsGroupedByChapter = groupCommitsByChapter(commits);
 
     await Promise.all(
         Object.keys(commitsGroupedByChapter).map(async (chapter) => {

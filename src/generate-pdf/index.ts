@@ -1,13 +1,7 @@
 import fs from "fs";
 import { mdToPdf } from "md-to-pdf";
 import { findMarkdownFiles } from "../utils/fs";
-
-interface GeneratePdfOptions {
-    specDir: string;
-    chapterContentsFilename: string;
-    outputDir: string;
-    outputFilename: string;
-}
+import * as inputs from "../utils/inputs";
 
 const pageBreak = '\n\n<div class="page-break"></div>\n\n';
 
@@ -20,12 +14,11 @@ const concatMarkdownFiles = (markdownFiles: string[]) => {
         .join(pageBreak);
 };
 
-export const generatePdf = async ({
-    specDir,
-    chapterContentsFilename,
-    outputDir,
-    outputFilename,
-}: GeneratePdfOptions) => {
+export const generatePdf = async () => {
+    const specDir = inputs.getSpecDir();
+    const chapterContentsFilename = inputs.getChapterContentsFilename();
+    const outputFilePath = inputs.getOutputFilePath();
+
     const markdownFiles = findMarkdownFiles(specDir).filter(
         (filename) => !filename.includes(chapterContentsFilename)
     );
@@ -33,6 +26,9 @@ export const generatePdf = async ({
     const pdf = await mdToPdf({ content });
 
     if (pdf) {
-        fs.writeFileSync(`${outputDir}/${outputFilename}`, pdf.content, "utf8");
+        fs.writeFileSync(outputFilePath, pdf.content, "utf8");
+        return outputFilePath;
     }
+
+    return "";
 };

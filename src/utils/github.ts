@@ -1,7 +1,8 @@
 import fs from "fs";
-import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { Endpoints } from "@octokit/types";
+import * as inputs from "../utils/inputs";
+import { getWorkingBranchName } from "./inputs";
 
 interface Author {
     name: string;
@@ -23,11 +24,6 @@ type GetCommitsResponse =
 
 export type Commit = GetCommitsResponse["data"];
 
-type GetPullRequestByBranchNameResponse =
-    Endpoints["GET /repos/{owner}/{repo}/pulls"]["response"];
-
-export type PullRequest = GetPullRequestByBranchNameResponse["data"][number];
-
 type FileContent = {
     type: "file";
     encoding: string;
@@ -47,19 +43,11 @@ type FileContent = {
     };
 };
 
-const getOctokit = () => {
-    const accessToken = core.getInput("accessToken");
-    return github.getOctokit(accessToken);
-};
-
-const getOwnerAndRepo = () => {
-    const [owner, repo] = core.getInput("repository").split("/");
-    return { owner, repo };
-};
+const getOctokit = () => github.getOctokit(inputs.getAccessToken());
 
 const createTreeFromFiles = async (files: string[]) => {
     const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
+    const { owner, repo } = inputs.getOwnerAndRepo();
 
     const filesBlobs = await Promise.all(
         files.map(async (filePath: string) => {
@@ -94,7 +82,7 @@ const commit = async ({
     newTree?: Tree;
 } & CommitOptions) => {
     const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
+    const { owner, repo } = inputs.getOwnerAndRepo();
 
     const currentCommit = await octokit.rest.git.getCommit({
         owner,
@@ -131,7 +119,7 @@ const setBranchToCommit = async ({
     commitSha: string;
 }) => {
     const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
+    const { owner, repo } = inputs.getOwnerAndRepo();
 
     await octokit.rest.git.updateRef({
         owner,
@@ -143,7 +131,7 @@ const setBranchToCommit = async ({
 
 export const getPullRequestByBranchName = async (branchName: string) => {
     const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
+    const { owner, repo } = inputs.getOwnerAndRepo();
     const pr = await octokit.rest.pulls.list({
         owner,
         repo,
@@ -167,7 +155,7 @@ export const getFileContentOnBranch = async ({
     branchName: string;
 }) => {
     const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
+    const { owner, repo } = inputs.getOwnerAndRepo();
 
     const content = await octokit.rest.repos.getContent({
         owner,
@@ -193,10 +181,11 @@ export const getFileContentOnBranch = async ({
 };
 
 export const getRevisionHistoryCommitsOnPullRequest = async (
-    prNumber: number
+    prNumber: number,
+    revisionCommitRegExp: RegExp
 ) => {
     const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
+    const { owner, repo } = inputs.getOwnerAndRepo();
 
     const commitsOnPR = await octokit.rest.pulls.listCommits({
         owner,
@@ -214,7 +203,7 @@ export const getRevisionHistoryCommitsOnPullRequest = async (
                 ref: sha,
             });
 
-            if (/^\[revision history\]/.test(commit.commit.message)) {
+            if (revisionCommitRegExp.test(commit.commit.message)) {
                 commits.push(commit);
             }
 
@@ -225,23 +214,22 @@ export const getRevisionHistoryCommitsOnPullRequest = async (
 };
 
 export const commitChangesToBranch = async ({
-    branchName,
     files,
     author,
     commitMessage,
 }: {
-    branchName: string;
     files: string[];
     author: Author;
     commitMessage: string;
 }) => {
     const octokit = getOctokit();
-    const { owner, repo } = getOwnerAndRepo();
+    const { owner, repo } = inputs.getOwnerAndRepo();
+    const workingBranchName = inputs.getWorkingBranchName();
 
     const branchRef = await octokit.rest.git.getRef({
         owner,
         repo,
-        ref: `heads/${branchName}`,
+        ref: `heads/${workingBranchName}`,
     });
 
     const newTree = await createTreeFromFiles(files);
@@ -253,7 +241,7 @@ export const commitChangesToBranch = async ({
     });
 
     await setBranchToCommit({
-        branchName,
+        branchName: workingBranchName,
         commitSha: newCommit.data.sha,
     });
 };

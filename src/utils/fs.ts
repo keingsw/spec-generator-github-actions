@@ -1,5 +1,5 @@
 import glob from "glob";
 
-export const findMarkdownFiles = (specDir: string) => {
-    return glob.sync(`${specDir}/**/*.md`);
+export const findMarkdownFiles = (dir: string) => {
+    return glob.sync(`${dir}/**/*.md`);
 };

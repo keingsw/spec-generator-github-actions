@@ -11,13 +11,9 @@ inputs:
     description: Markdown files directory
     default: "."
     required: true
-  outputDir:
+  outputFilePath:
     description: PDF file directory
-    default: "."
-    required: true
-  outputFilename:
-    description: PDF file name
-    default: "spec.pdf"
+    default: "./spec.pdf"
     required: true
   chapterContentsFilename:
     description: chapter contents filename
