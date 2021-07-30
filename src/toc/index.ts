@@ -9,14 +9,15 @@ interface GenerateTocResult extends ReturnType<typeof transform> {
     filePath: string;
 }
 
+const tocSectionRegExp = inputs.getTocSectionRegExp();
+
+
 const matchesStart = (line: string) => {
-    const { start } = inputs.getTocSectionRegExp();
-    return start.test(line);
+    return tocSectionRegExp.start.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const { end } = inputs.getTocSectionRegExp();
-    return end.test(line);
+    return tocSectionRegExp.end.test(line);
 };
 
 const findChapterContentsFiles = () => {

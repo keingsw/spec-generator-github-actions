@@ -13,15 +13,14 @@ import * as inputs from "../utils/inputs";
 
 const HEADER = ["改訂番号", "改訂日", "改訂者", "改訂内容"];
 
+const revisionHistorySectionRegExp = inputs.getRevisionHistorySectionRegExp();
+
 const matchesStart = (line: string) => {
-    const { start } = inputs.getRevisionHistorySectionRegExp();
-    console.log(start);
-    return start.test(line);
+    return revisionHistorySectionRegExp.start.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const { end } = inputs.getRevisionHistorySectionRegExp();
-    return end.test(line);
+    return revisionHistorySectionRegExp.end.test(line);
 };
 
 const extractChangedChaptersFromCommit = (commit: Commit) => {
