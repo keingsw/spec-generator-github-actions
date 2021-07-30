@@ -3,8 +3,7 @@ import * as core from "@actions/core";
 const escapeRegExp = (patternString: string) =>
     patternString.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 
-const createRegExp = (patternString: string) =>
-    new RegExp(escapeRegExp(patternString));
+const createRegExp = (patternString: string) => new RegExp(patternString);
 
 export const wrapInMdComment = (string: string) => `[${string}]: <>`;
 
@@ -41,8 +40,8 @@ export const getRevisionHistorySectionMdComments = () => ({
 export const getRevisionHistorySectionRegExp = () => {
     const { start, end } = getRevisionHistorySectionMdComments();
     return {
-        start: createRegExp(`^${start}`),
-        end: createRegExp(`^${end}`),
+        start: createRegExp(`^${escapeRegExp(start)}`),
+        end: createRegExp(`^${escapeRegExp(end)}`),
     };
 };
 export const getTocSectionMdComments = () => ({
@@ -53,7 +52,7 @@ export const getTocSectionMdComments = () => ({
 export const getTocSectionRegExp = () => {
     const { start, end } = getTocSectionMdComments();
     return {
-        start: createRegExp(`^${start}`),
-        end: createRegExp(`^${end}`),
+        start: createRegExp(`^${escapeRegExp(start)}`),
+        end: createRegExp(`^${escapeRegExp(end)}`),
     };
 };
