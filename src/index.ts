@@ -54,8 +54,10 @@ async function run() {
             ],
             author,
             commitMessage:
-                "[GitHub Action] Update TOC and revision history, and re-generate PDF",
+                "[Spec Generator] Update TOC and revision history, and re-generate PDF",
         });
+
+        core.setOutput("pdfPath", `${outputDir}/${outputFilename}`);
     } catch (error) {
         core.setFailed(error.message);
     }
