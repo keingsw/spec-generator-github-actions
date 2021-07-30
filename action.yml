@@ -7,6 +7,14 @@ inputs:
     description: Secret GitHub API token
     default: ${{ github.token }}
     required: true
+  repository:
+    description: Name of repository
+    default: ${{ github.repository }}
+    required: true
+  branchRef:
+    description: Branch to use workflow from
+    default: ${{ github.event.ref }}
+    required: true
   specDir:
     description: Markdown files directory
     default: "."

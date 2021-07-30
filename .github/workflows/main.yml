@@ -10,8 +10,6 @@ jobs:
               uses: ./
               with:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-                  branchRef: ${{ github.event.ref }}
                   specDir: "sample-spec"
                   outputDir: "sample-spec"
                   outputFilename: "spec.pdf"
