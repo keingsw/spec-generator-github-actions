@@ -16,40 +16,40 @@ inputs:
     default: ${{ github.event.ref }}
     required: true
   specDir:
-    description: Markdown files directory
-    default: "."
+    description: Directory where all the Markdown files are located
+    default: .
     required: true
   outputFilePath:
     description: PDF file directory
-    default: "./spec.pdf"
+    default: ./spec.pdf
     required: true
   chapterContentsFilename:
-    description: chapter contents filename
+    description: Chapter contents filename
     default: _contents.md
     required: true
   chapterIndexFilename:
-    description: chapter index filename
+    description: Chapter index filename
     default: _index.md
     required: true
   tocSectionStart:
     description: String to identify the start line of toc section
-    default: `START toc`
+    default: START toc
     required: true
   tocSectionEnd:
     description: String to identify the end line of toc section
-    default: `END toc`
+    default: END toc
     required: true
   revisionHistorySectionStart:
     description: String to identify the start line of revision history section
-    default: `START revision history`
+    default: START revision history
     required: true
   revisionHistorySectionEnd:
     description: String to identify the end line of revision history section
-    default: `END revision history`
+    default: END revision history
     required: true
   revisionCommitRegExp:
-    description: Regular expression to identify revision commits 
     default: `^revision(\d+.\d+):.*$`
+    description: Regular expression to identify revision commits
     required: true
 
 outputs:
@@ -61,5 +61,5 @@ branding:
   color: orange
 
 runs:
-  using: "node12"
-  main: "dist/index.js"
+  using: node12
+  main: dist/index.js

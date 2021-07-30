@@ -101,15 +101,15 @@ jobs:
 |name|description|default|required|example|
 |----|----|----|----|----|
 |accessToken|Secret GitHub API token|${{ github.token }}|true||
-|specDir|Markdown files directory|.|true||
+|specDir|Directory where all the Markdown files are located|.|true||
 |outputFilePath|Path to PDF file to be generated|./spec.pdf|true||
 |chapterContentsFilename|Chapter contents filename|_contents.md|true||
 |chapterIndexFilename|Chapter index filename|_index.md|true||
-|tocSectionStart|Identifier for the beginning line of toc section|START toc|true||
+|tocSectionStart|Identifier for the start line of toc section|START toc|true||
 |tocSectionEnd|Identifier for the end line of toc section|END toc|true||
-|revisionHistorySectionStart|Identifier for the beginning line of revision history section|START revision history|true||
+|revisionHistorySectionStart|Identifier for the start line of revision history section|START revision history|true||
 |revisionHistorySectionEnd|Identifier for the end line of revision history section|END revision history|true||
-|revisionCommitRegExp|Regular expression to identify revision commits |`^revision(\d+.\d+):.*$`|true||
+|revisionCommitRegExp|Regular expression to identify revision commits |`^revision\((?<revision_number>.*)\):((?<revision_notes>.*))$`|true||
 
 
 
