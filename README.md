@@ -1,6 +1,6 @@
 ## About
 
-GitHub Action to convert and merge markdown files into a PDF file and generate a nice looking a specification document.
+GitHub Action to merge markdown files and convert into a PDF file, and generate a nice looking a specification document.
 
 - Auto-generate TOC
 - Auto-update revision history tracing commits on the specified brach
@@ -10,16 +10,41 @@ GitHub Action to convert and merge markdown files into a PDF file and generate a
 
 ### 0. Prepare markdown files
 
-Supports two-layered structure as follows:
+* File structure
+
+Supports two-layered structure as follows only for now:
 
 ```
+spec-md/
+　├ 00_chapter00/
+　│　├ _index.md
+　│　├ _contents.md
+　│　├ section1.md
+　│　└ section2.md
+　│
+　├ 01_chapter01/
+　│　├...
+　│　├...
+ 
 ```
+
+* Index
+
+`_index.md` is required in each chapter directory for the chapter toc and revision history to be generated properly.
+
+Utilise the option `chapterIndexFilename` if you want to use different file name.
+
+* Page Order
+
+`_contents.md` is required to configure the page order.
+
+Utilise the option `chapterContentsFilename` if you want to use different file name.
 
 * Page Break
 
 Place the following tag where you want to split pages.
-`<div class="page-break"></div>`
 
+```<div class="page-break"></div>```
 
 
 ### 1 .Setup TOC
@@ -28,7 +53,7 @@ Place the following tag where you want to split pages.
 
 Place START/END comments in where you'd like the toc to be generated.
 
-Example:
+Example (/spec-md/00_chapter00/section01.md):
 ```
 ## Section1
 
@@ -51,7 +76,7 @@ Suspendisse ultricies pellentesque purus, sed semper nisi aliquam ut. Proin eget
 
 Place START/END comments in where you'd like the revision history to be generated.
 
-Example:
+Example (/spec-md/00_chapter00/_index.md):
 ```
 # Title of CHAPTER00
 
@@ -83,10 +108,8 @@ jobs:
               uses: ./
               with:
                   accessToken: ${{ secrets.GITHUB_TOKEN }}
-                  repository: ${{ github.repository }}
-                  branchRef: ${{ github.event.ref }}
-                  specDir: "sample-spec"
-                  outputDir: "sample-spec"
+                  specDir: "spec-md"
+                  outputDir: "outputs"
                   outputFilename: "spec.pdf"
                   chapterContentsFilename: "contents.md"
                   chapterIndexFilename: "index.md"
@@ -112,6 +135,15 @@ jobs:
 |revisionCommitRegExp|Regular expression to identify revision commits |`^revision\((?<revision_number>.*)\):((?<revision_notes>.*))$`|true||
 
 
+## Usage
+
+### 0. Create PR
+
+### 1. Edit markdown files and commit
+
+### 2. Run workflow
+
+### 3. Download PDF
 
 
 
