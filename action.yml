@@ -49,7 +49,7 @@ inputs:
         required: true
     revisionCommitRegExp:
         description: Regular expression to identify revision commits
-        default: "^revision\((?<revision_number>.*)\):((?<revision_notes>.*))$"
+        default: '^revision\((?<revision_number>.*)\):((?<revision_notes>.*))$'
         required: true
 
 outputs:
