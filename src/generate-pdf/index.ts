@@ -23,7 +23,8 @@ export const generatePdf = async () => {
         (filename) => !filename.includes(chapterContentsFilename)
     );
     const content = concatMarkdownFiles(markdownFiles);
-    const pdf = await mdToPdf({ content });
+    // @ts-ignore FIXME: type config properly
+    const pdf = await mdToPdf({ content }, {"launch_options": {executablePath: 'google-chrome-unstable', args:["--no-sandbox"]}});
 
     if (pdf) {
         fs.writeFileSync(outputFilePath, pdf.content, "utf8");
