@@ -25,11 +25,11 @@ inputs:
         required: true
     chapterContentsFilename:
         description: Chapter contents filename
-        default: _contents.md
+        default: "_contents.md"
         required: true
     chapterIndexFilename:
         description: Chapter index filename
-        default: _index.md
+        default: "_index.md"
         required: true
     tocSectionStart:
         description: String to identify the start line of toc section
