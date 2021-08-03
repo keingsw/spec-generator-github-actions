@@ -17,7 +17,7 @@
     "typescript": "^4.3.5"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "ncc build src/index.ts -o dist"
   },
   "repository": {
     "type": "git",

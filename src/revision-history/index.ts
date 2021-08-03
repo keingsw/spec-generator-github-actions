@@ -13,19 +13,21 @@ import * as inputs from "../utils/inputs";
 
 const HEADER = ["改訂番号", "改訂日", "改訂者", "改訂内容"];
 
+const revisionHistorySectionRegExp = inputs.getRevisionHistorySectionRegExp();
+
 const matchesStart = (line: string) => {
-    const { start } = inputs.getRevisionHistorySectionRegExp();
-    return start.test(line);
+    return revisionHistorySectionRegExp.start.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const { end } = inputs.getRevisionHistorySectionRegExp();
-    return end.test(line);
+    return revisionHistorySectionRegExp.end.test(line);
 };
 
 const extractChangedChaptersFromCommit = (commit: Commit) => {
     const specDir = inputs.getSpecDir();
-    const pattern = new RegExp(`^${path.relative(".", specDir)}\/(.*)/.*\.md$`);
+    const pattern = new RegExp(
+        `^${path.relative(".", specDir)}\\/(.*)/.*\\.md$`
+    );
     const { files = [] } = commit;
 
     return files.reduce((chapters: string[], { filename = "" }) => {
@@ -40,11 +42,16 @@ const extractChangedChaptersFromCommit = (commit: Commit) => {
 };
 
 const extractRowDataFromCommit = (commit: Commit["commit"]) => {
-    const revisionCommitRegExp = inputs.getRevisionCommitRegExp();
+    const matched = commit.message.match(inputs.getRevisionCommitRegExp());
 
-    // FIXME: utilise named match
-    const [, revisionNo, revisionMessage] =
-        commit.message.match(revisionCommitRegExp) || [];
+    const revisionNumber =
+        matched && matched.groups && matched.groups.revision_number
+            ? matched.groups.revision_number
+            : "";
+    const revisionNotes =
+        matched && matched.groups && matched.groups.revision_notes
+            ? matched.groups.revision_notes
+            : "";
     const revisedAt =
         commit.author && commit.author.date
             ? dateformat(new Date(commit.author.date), "yyyy/mm/dd")
@@ -52,7 +59,7 @@ const extractRowDataFromCommit = (commit: Commit["commit"]) => {
     const revisedBy =
         commit.author && commit.author.name ? commit.author.name : "";
 
-    return [revisionNo, revisedAt, revisedBy, revisionMessage];
+    return [revisionNumber, revisedAt, revisedBy, revisionNotes];
 };
 
 const getOriginalRevisionHistory = async (
@@ -93,11 +100,11 @@ const groupCommitsByChapter = (commits: Commit[]) =>
         {}
     );
 
-const composeTableRowLine = (row: string[]) => `|${row.join("|")}|`;
+const composeTableRow = (row: string[]) => `|${row.join("|")}|`;
 
-const composeHeaderLines = () => {
+const composeHeaderRows = () => {
     return [HEADER, Array<string>(HEADER.length).fill("----")].map(
-        composeTableRowLine
+        composeTableRow
     );
 };
 
@@ -113,7 +120,7 @@ const composeRevisionHistory = ({
     return [
         revisionHistorySectionMdComments.start,
         "",
-        ...composeHeaderLines(),
+        ...composeHeaderRows(),
         ...originalRevisionHistory,
         ...newRevisionHistory,
         "",
@@ -131,11 +138,11 @@ export const updateRevisionHistory = async (): Promise<void> => {
         number: prNumber,
         base: { ref: baseBranchName },
     } = await getPullRequestByBranchName(workingBranchName);
-
     const commits = await getRevisionHistoryCommitsOnPullRequest(
         prNumber,
         revisionCommitRegExp
     );
+    console.log(commits);
     const commitsGroupedByChapter = groupCommitsByChapter(commits);
 
     await Promise.all(
@@ -148,7 +155,7 @@ export const updateRevisionHistory = async (): Promise<void> => {
             );
             const newRevisionHistory = commitsGroupedByChapter[chapter]
                 .map(({ commit }) => extractRowDataFromCommit(commit))
-                .map(composeTableRowLine);
+                .map(composeTableRow);
 
             const content = fs.readFileSync(indexFilePath, "utf8").toString();
             const updatedContent = updateSection({

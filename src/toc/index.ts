@@ -9,14 +9,14 @@ interface GenerateTocResult extends ReturnType<typeof transform> {
     filePath: string;
 }
 
+const tocSectionRegExp = inputs.getTocSectionRegExp();
+
 const matchesStart = (line: string) => {
-    const { start } = inputs.getTocSectionRegExp();
-    return start.test(line);
+    return tocSectionRegExp.start.test(line);
 };
 
 const matchesEnd = (line: string) => {
-    const { end } = inputs.getTocSectionRegExp();
-    return end.test(line);
+    return tocSectionRegExp.end.test(line);
 };
 
 const findChapterContentsFiles = () => {
@@ -41,14 +41,14 @@ const generateSectionToc = (filePath: string): GenerateTocResult => {
     };
 };
 
-const generateTocPerChapter = (chapterContentFile: string) => {
+const generateToc = (chapterContentFile: string) => {
     const sectionsInChapter = getSectionsInOrder(chapterContentFile);
     return sectionsInChapter.map((section) => {
         return generateSectionToc(section);
     });
 };
 
-const wrapTocWithAnchorComment = (toc: string) => {
+const wrapTocWithAnchorComments = (toc: string) => {
     const tocSectionMdComments = inputs.getTocSectionMdComments();
     return [tocSectionMdComments.start, toc, tocSectionMdComments.end].join(
         "\n"
@@ -61,7 +61,7 @@ const updateSectionToc = ({ toc, filePath }: GenerateTocResult) => {
         content,
         matchesStart,
         matchesEnd,
-        newContent: wrapTocWithAnchorComment(toc),
+        newContent: wrapTocWithAnchorComments(toc),
     });
     fs.writeFileSync(filePath, updatedContent, "utf8");
 };
@@ -77,7 +77,7 @@ const updateChapterToc = (generateTocResults: GenerateTocResult[]) => {
         content,
         matchesStart,
         matchesEnd,
-        newContent: wrapTocWithAnchorComment(
+        newContent: wrapTocWithAnchorComments(
             generateTocResults.map(({ toc }) => toc).join("\n")
         ),
     });
@@ -88,7 +88,7 @@ export const updateToc = () => {
     const chapterContentsFiles = findChapterContentsFiles();
 
     chapterContentsFiles.forEach((chapterContentsFile) => {
-        const results = generateTocPerChapter(chapterContentsFile);
+        const results = generateToc(chapterContentsFile);
         const shouldUpdateChapterToc = !!results.find(
             ({ transformed }) => transformed
         );
