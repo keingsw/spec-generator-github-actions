@@ -22,7 +22,12 @@ export const getChapterContentsFilename = () =>
 export const getChapterIndexFilename = () =>
     core.getInput("chapterIndexFilename");
 
-export const getOutputFilePath = () => core.getInput("outputFilePath");
+export const getOutputDir = () => core.getInput("outputDir");
+
+export const getOutputFilename = () => core.getInput("outputFilename");
+
+export const getOutputFilePath = () =>
+    `${getOutputDir()} / ${getOutputFilename()}`;
 
 export const getWorkingBranchName = () => {
     const [branchName] = core.getInput("branchRef").split("/").slice(-1);
