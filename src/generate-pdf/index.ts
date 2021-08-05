@@ -16,7 +16,6 @@ const margePdfFiles = async (pdfFiles: string[]) => {
     });
 
     await merger.save(outputFilePath);
-    console.log(fs.readFileSync(outputFilePath, "utf8").toString());
 };
 
 const generateSinglePagePdf = async (markdownFilePath: string) => {
