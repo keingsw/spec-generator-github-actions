@@ -29,7 +29,7 @@ const generateSinglePagePdf = async (markdownFilePath: string) => {
 
     const outputPath = `${outputDir}/${chapter}/${section}.pdf`;
 
-    const pdf = await mdToPdf(
+    await mdToPdf(
         { content },
         {
             dest: outputPath,
@@ -66,4 +66,12 @@ export const generatePdf = async () => {
     );
 
     await margePdfFiles(generatePdfResults);
+
+    Promise.all(
+        generatePdfResults.map((pdfFilePath) => {
+            if (fs.existsSync(pdfFilePath)) {
+                fs.unlinkSync(pdfFilePath);
+            }
+        })
+    );
 };
