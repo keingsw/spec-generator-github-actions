@@ -27,7 +27,7 @@ export const getOutputDir = () => core.getInput("outputDir");
 export const getOutputFilename = () => core.getInput("outputFilename");
 
 export const getOutputFilePath = () =>
-    `${getOutputDir()} / ${getOutputFilename()}`;
+    `${getOutputDir()}/${getOutputFilename()}`;
 
 export const getWorkingBranchName = () => {
     const [branchName] = core.getInput("branchRef").split("/").slice(-1);
