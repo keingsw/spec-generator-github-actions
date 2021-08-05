@@ -142,7 +142,6 @@ export const updateRevisionHistory = async (): Promise<void> => {
         prNumber,
         revisionCommitRegExp
     );
-    console.log(commits);
     const commitsGroupedByChapter = groupCommitsByChapter(commits);
 
     await Promise.all(
