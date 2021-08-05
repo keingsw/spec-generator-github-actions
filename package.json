@@ -40,6 +40,7 @@
     "glob": "^7.1.7",
     "js-base64": "^3.6.1",
     "md-to-pdf": "^4.0.0",
+    "pdf-merger-js": "^3.2.1",
     "puppeteer": "^10.1.0"
   }
 }

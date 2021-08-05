@@ -1,35 +1,70 @@
 import fs from "fs";
+import path from "path";
 import { mdToPdf } from "md-to-pdf";
+import PDFMerger from "pdf-merger-js";
 import { findMarkdownFiles } from "../utils/fs";
 import * as inputs from "../utils/inputs";
 
 const pageBreak = '\n\n<div class="page-break"></div>\n\n';
 
-const concatMarkdownFiles = (markdownFiles: string[]) => {
-    return markdownFiles
-        .reduce((accumulator: string[], filePath: string) => {
-            accumulator.push(fs.readFileSync(filePath, "utf8").toString());
-            return accumulator;
-        }, [])
-        .join(pageBreak);
+const margePdfFiles = async (pdfFiles: string[]) => {
+    const outputFilePath = inputs.getOutputFilePath();
+    const merger = new PDFMerger();
+
+    pdfFiles.forEach((pdfFilePath) => {
+        merger.add(pdfFilePath);
+    });
+
+    await merger.save(outputFilePath);
+    console.log(fs.readFileSync(outputFilePath, "utf8").toString());
+};
+
+const generateSinglePagePdf = async (markdownFilePath: string) => {
+    const specDir = inputs.getSpecDir();
+    const outputDir = inputs.getOutputDir();
+
+    const content = fs.readFileSync(markdownFilePath, "utf8").toString();
+    const [chapter, section] = path
+        .relative(specDir, markdownFilePath.replace(".md", ""))
+        .split("/");
+
+    const outputPath = `${outputDir}/${chapter}/${section}.pdf`;
+
+    const pdf = await mdToPdf(
+        { content },
+        {
+            dest: outputPath,
+            body_class: [`page--${chapter}__${section}`],
+            launch_options: {
+                executablePath: "google-chrome-unstable",
+                // @ts-ignore
+                args: ["--no-sandbox"],
+            },
+        }
+    );
+
+    return outputPath;
 };
 
 export const generatePdf = async () => {
     const specDir = inputs.getSpecDir();
     const chapterContentsFilename = inputs.getChapterContentsFilename();
-    const outputFilePath = inputs.getOutputFilePath();
 
     const markdownFiles = findMarkdownFiles(specDir).filter(
         (filename) => !filename.includes(chapterContentsFilename)
     );
-    const content = concatMarkdownFiles(markdownFiles);
-    // @ts-ignore FIXME: type config properly
-    const pdf = await mdToPdf({ content }, {"launch_options": {executablePath: 'google-chrome-unstable', args:["--no-sandbox"]}});
 
-    if (pdf) {
-        fs.writeFileSync(outputFilePath, pdf.content, "utf8");
-        return outputFilePath;
-    }
+    const generatePdfResults = await markdownFiles.reduce(
+        async (previousPromise: Promise<string[]>, markdownFilePath) => {
+            const generatePdfResults = await previousPromise;
 
-    return "";
+            const result = await generateSinglePagePdf(markdownFilePath);
+
+            generatePdfResults.push(result);
+            return generatePdfResults;
+        },
+        Promise.resolve([])
+    );
+
+    await margePdfFiles(generatePdfResults);
 };

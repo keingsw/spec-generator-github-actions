@@ -15,24 +15,25 @@ async function run() {
 
     try {
         const specDir = inputs.getSpecDir();
+        const outputFilename = inputs.getOutputFilename();
 
         updateToc();
         await updateRevisionHistory();
-        const pdfPath = await generatePdf();
+        await generatePdf();
 
         await commitChangesToBranch({
             files: [
                 ...findMarkdownFiles(specDir).map((filePath) =>
                     path.relative("./", filePath)
                 ),
-                ...(pdfPath && [path.relative("./", pdfPath)]),
+                path.relative("./", outputFilename),
             ],
             author,
             commitMessage:
                 "[Spec Generator] Update TOC and revision history, and re-generate PDF",
         });
 
-        core.setOutput("pdfPath", pdfPath);
+        core.setOutput("pdfPath", outputFilename);
     } catch (error) {
         core.setFailed(error.message);
     }
