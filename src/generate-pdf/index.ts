@@ -5,8 +5,6 @@ import PDFMerger from "pdf-merger-js";
 import { findMarkdownFiles } from "../utils/fs";
 import * as inputs from "../utils/inputs";
 
-const pageBreak = '\n\n<div class="page-break"></div>\n\n';
-
 const margePdfFiles = async (pdfFiles: string[]) => {
     const outputFilePath = inputs.getOutputFilePath();
     const merger = new PDFMerger();
