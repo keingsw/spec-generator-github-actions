@@ -42,6 +42,7 @@ const generateSinglePagePdf = async (
         { content },
         {
             dest: outputPath,
+            basedir: "sample-spec",
             body_class: [`page--${chapter}__${section}`],
             pdf_options: {
                 headerTemplate,
