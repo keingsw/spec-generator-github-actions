@@ -35,7 +35,7 @@ const generateSinglePagePdf = async (markdownFilePath: string) => {
             dest: outputPath,
             body_class: [`page--${chapter}__${section}`],
             launch_options: {
-                executablePath: "chromium-browser",
+                executablePath: "google-chrome-stable",
                 // @ts-ignore
                 args: ["--no-sandbox"],
             },
