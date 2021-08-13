@@ -7,7 +7,7 @@ import * as inputs from "../utils/inputs";
 
 const getFileTemplate = (filePath: string) =>
     filePath && fs.existsSync(filePath)
-        ? fs.readFileSync(filePath, "utf8").toString()
+        ? fs.readFileSync(filePath, "utf8")
         : "";
 
 const margePdfFiles = async (pdfFiles: string[]) => {
@@ -67,6 +67,7 @@ export const generatePdf = async () => {
     );
     const headerTemplate = getFileTemplate(inputs.getHeaderFilePath());
     const footerTemplate = getFileTemplate(inputs.getFooterFilePath());
+    console.log({ headerTemplate, footerTemplate });
 
     const generatePdfResults = await markdownFiles.reduce(
         async (previousPromise: Promise<string[]>, markdownFilePath) => {
