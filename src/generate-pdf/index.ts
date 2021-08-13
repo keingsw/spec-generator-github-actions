@@ -66,4 +66,12 @@ export const generatePdf = async () => {
     );
 
     await margePdfFiles(generatePdfResults);
+
+    Promise.all(
+        generatePdfResults.map((pdfFilePath) => {
+            if (fs.existsSync(pdfFilePath)) {
+                fs.unlinkSync(pdfFilePath);
+            }
+        })
+    );
 };
