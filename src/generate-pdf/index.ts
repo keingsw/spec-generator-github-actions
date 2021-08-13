@@ -5,6 +5,11 @@ import PDFMerger from "pdf-merger-js";
 import { findMarkdownFiles } from "../utils/fs";
 import * as inputs from "../utils/inputs";
 
+const getFileTemplate = (filePath: string) =>
+    filePath && fs.existsSync(filePath)
+        ? fs.readFileSync(filePath, "utf8").toString()
+        : "";
+
 const margePdfFiles = async (pdfFiles: string[]) => {
     const outputFilePath = inputs.getOutputFilePath();
     const merger = new PDFMerger();
@@ -16,7 +21,13 @@ const margePdfFiles = async (pdfFiles: string[]) => {
     await merger.save(outputFilePath);
 };
 
-const generateSinglePagePdf = async (markdownFilePath: string) => {
+const generateSinglePagePdf = async (
+    markdownFilePath: string,
+    {
+        headerTemplate,
+        footerTemplate,
+    }: { headerTemplate: string; footerTemplate: string }
+) => {
     const specDir = inputs.getSpecDir();
     const outputDir = inputs.getOutputDir();
 
@@ -32,6 +43,10 @@ const generateSinglePagePdf = async (markdownFilePath: string) => {
         {
             dest: outputPath,
             body_class: [`page--${chapter}__${section}`],
+            pdf_options: {
+                headerTemplate,
+                footerTemplate,
+            },
             launch_options: {
                 executablePath: "google-chrome-stable",
                 // @ts-ignore
@@ -50,12 +65,17 @@ export const generatePdf = async () => {
     const markdownFiles = findMarkdownFiles(specDir).filter(
         (filename) => !filename.includes(chapterContentsFilename)
     );
+    const headerTemplate = getFileTemplate(inputs.getHeaderFilePath());
+    const footerTemplate = getFileTemplate(inputs.getFooterFilePath());
 
     const generatePdfResults = await markdownFiles.reduce(
         async (previousPromise: Promise<string[]>, markdownFilePath) => {
             const generatePdfResults = await previousPromise;
 
-            const result = await generateSinglePagePdf(markdownFilePath);
+            const result = await generateSinglePagePdf(markdownFilePath, {
+                headerTemplate,
+                footerTemplate,
+            });
 
             generatePdfResults.push(result);
             return generatePdfResults;
