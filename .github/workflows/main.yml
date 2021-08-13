@@ -25,6 +25,8 @@ jobs:
                   outputFilename: spec.pdf
                   chapterContentsFilename: _contents.md
                   chapterIndexFilename: _index.md
+                  headerFilePath: sample-spec/assets/header.html
+                  footerFilePath: sample-spec/assets/footer.html
             - run: echo "${{ steps.generate.outputs.pdfPath }}"
             - uses: actions/upload-artifact@v2
               with:

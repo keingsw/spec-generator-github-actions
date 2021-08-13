@@ -61,3 +61,7 @@ export const getTocSectionRegExp = () => {
         end: createRegExp(`^${escapeRegExp(end)}`),
     };
 };
+
+export const getHeaderFilePath = () => core.getInput("headerFilePath");
+
+export const getFooterFilePath = () => core.getInput("footerFilePath");
