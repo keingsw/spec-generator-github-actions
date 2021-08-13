@@ -50,8 +50,23 @@ const generateSinglePagePdf = async (
             body_class: [`page--${chapter}__${section}`],
             pdf_options: {
                 displayHeaderFooter: true,
-                headerTemplate,
-                footerTemplate,
+                headerTemplate: `<style>
+            section {
+                margin: 0 auto;
+                font-family: system-ui;
+                font-size: 11px;
+            }
+        </style>
+        <section>
+            <div>タイトル</div>
+        </section>`,
+                footerTemplate: `
+        <section>
+            <div>
+                Page <span class="pageNumber"></span>
+                of <span class="totalPages"></span>
+            </div>
+        </section>`,
             },
             launch_options: {
                 executablePath: "google-chrome-stable",
