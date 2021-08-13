@@ -7,7 +7,12 @@ import * as inputs from "../utils/inputs";
 
 const getFileTemplate = (filePath: string) =>
     filePath && fs.existsSync(filePath)
-        ? fs.readFileSync(filePath, "utf8")
+        ? fs
+              .readFileSync(filePath, "utf8")
+              .toString()
+              .split(/\n/)
+              .map((line) => line.trim())
+              .join("")
         : "";
 
 const margePdfFiles = async (pdfFiles: string[]) => {
