@@ -2,13 +2,47 @@ import fs from "fs";
 import path from "path";
 import { mdToPdf } from "md-to-pdf";
 import PDFMerger from "pdf-merger-js";
+import { parse } from "node-html-parser";
 import { findMarkdownFiles } from "../utils/fs";
 import * as inputs from "../utils/inputs";
 
-const getFileTemplate = (filePath: string) =>
-    filePath && fs.existsSync(filePath)
-        ? fs.readFileSync(filePath, "utf8").toString()
-        : "";
+const selectMediaType = (filename: string) => {
+    const extension = filename.split(".").pop();
+    if (extension === "svg") {
+        return `image/svg+xml`;
+    }
+    return `image/${extension}`;
+};
+
+const encodeImageToDataUrl = (filename: string) => {
+    const mediaType = selectMediaType(filename);
+    const base64 = fs.readFileSync(filename, {
+        encoding: "base64",
+    });
+    return `data:${mediaType};base64,${base64}`;
+};
+
+const convertImageSrcToBase64 = (basedir: string, template: string) => {
+    const root = parse(template);
+    const images = root.querySelectorAll("img[src]");
+
+    images.forEach((image) => {
+        const src = `${basedir}/${image.getAttribute("src")}`;
+        image.setAttribute("src", encodeImageToDataUrl(src));
+    });
+
+    return root.toString();
+};
+
+const getFileTemplate = (filePath: string) => {
+    if (!filePath || !fs.existsSync(filePath)) {
+        return "";
+    }
+
+    const basedir = path.dirname(filePath);
+    const template = fs.readFileSync(filePath, "utf8").toString();
+    return convertImageSrcToBase64(basedir, template);
+};
 
 const margePdfFiles = async (pdfFiles: string[]) => {
     const outputFilePath = inputs.getOutputFilePath();
@@ -42,7 +76,6 @@ const generateSinglePagePdf = async (
         { content },
         {
             dest: outputPath,
-            basedir: "sample-spec",
             body_class: [`page--${chapter}__${section}`],
             pdf_options: {
                 headerTemplate,
