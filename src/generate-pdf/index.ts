@@ -49,6 +49,7 @@ const generateSinglePagePdf = async (
             dest: outputPath,
             body_class: [`page--${chapter}__${section}`],
             pdf_options: {
+                displayHeaderFooter: true,
                 headerTemplate,
                 footerTemplate,
             },
