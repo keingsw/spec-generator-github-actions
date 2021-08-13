@@ -15,7 +15,7 @@ async function run() {
 
     try {
         const specDir = inputs.getSpecDir();
-        const outputFilename = inputs.getOutputFilename();
+        const outputFilePath = inputs.getOutputFilePath();
 
         updateToc();
         await updateRevisionHistory();
@@ -26,14 +26,14 @@ async function run() {
                 ...findMarkdownFiles(specDir).map((filePath) =>
                     path.relative("./", filePath)
                 ),
-                path.relative("./", outputFilename),
+                path.relative("./", outputFilePath),
             ],
             author,
             commitMessage:
                 "[Spec Generator] Update TOC and revision history, and re-generate PDF",
         });
 
-        core.setOutput("pdfPath", outputFilename);
+        core.setOutput("pdfPath", outputFilePath);
     } catch (error) {
         core.setFailed(error.message);
     }
