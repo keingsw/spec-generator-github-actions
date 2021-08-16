@@ -28,7 +28,7 @@ const convertImageSrcToBase64 = (basedir: string, template: string) => {
 
     images.forEach((image) => {
         const src = `${basedir}/${image.getAttribute("src")}`;
-        if (/^data:/.test(src)) {
+        if (!/^data:/.test(src)) {
             image.setAttribute("src", encodeImageToDataUrl(src));
         }
     });
