@@ -42,12 +42,7 @@ const getFileTemplate = (filePath: string) => {
     }
 
     const basedir = path.dirname(filePath);
-    const template = fs
-        .readFileSync(filePath, "utf8")
-        .toString()
-        .split("\n")
-        .map((line) => line.trim())
-        .join("");
+    const template = fs.readFileSync(filePath, "utf8").toString();
     return convertImageSrcToBase64(basedir, template);
 };
 
