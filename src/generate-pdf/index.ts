@@ -28,7 +28,9 @@ const convertImageSrcToBase64 = (basedir: string, template: string) => {
 
     images.forEach((image) => {
         const src = `${basedir}/${image.getAttribute("src")}`;
-        image.setAttribute("src", encodeImageToDataUrl(src));
+        if (/^data:/.test(src)) {
+            image.setAttribute("src", encodeImageToDataUrl(src));
+        }
     });
 
     return root.toString();
@@ -40,7 +42,12 @@ const getFileTemplate = (filePath: string) => {
     }
 
     const basedir = path.dirname(filePath);
-    const template = fs.readFileSync(filePath, "utf8").toString();
+    const template = fs
+        .readFileSync(filePath, "utf8")
+        .toString()
+        .split("\n")
+        .map((line) => line.trim())
+        .join("");
     return convertImageSrcToBase64(basedir, template);
 };
 
